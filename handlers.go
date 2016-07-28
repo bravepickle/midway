@@ -7,6 +7,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/bravepickle/gencurl"
 	"github.com/urfave/negroni"
 )
 
@@ -20,20 +21,23 @@ func NewLogger() *CurlLogger {
 
 func (l *CurlLogger) ServeHTTP(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 	start := time.Now()
+	l.Println(`-----`)
 	l.Printf("Started %s %s", r.Method, r.URL.Path)
 
 	next(rw, r)
 
 	res := rw.(negroni.ResponseWriter)
 	l.Printf("Completed %v %s in %v", res.Status(), http.StatusText(res.Status()), time.Since(start))
+	l.Println(gencurl.FromRequest(r))
+	l.Println(`-----`)
 }
 
 // Classic returns a new Negroni instance with the default middleware already
 // in the stack.
 //
 // Recovery - Panic Recovery Middleware
-// Logger - Request/Response Logging
+// Logger - Request/Response Logging in CURL format
 // Static - Static File Serving
-func Classic() *negroni.Negroni {
-	return negroni.New(negroni.NewRecovery(), NewLogger(), negroni.NewStatic(http.Dir("public")))
+func Gateway() *negroni.Negroni {
+	return negroni.New(negroni.NewRecovery(), NewLogger())
 }
