@@ -24,11 +24,13 @@ func (l *CurlLogger) ServeHTTP(rw http.ResponseWriter, r *http.Request, next htt
 	l.Println(`-----`)
 	l.Printf("Started %s %s", r.Method, r.URL.Path)
 
+	body := gencurl.CopyBody(r)
+
 	next(rw, r)
 
 	res := rw.(negroni.ResponseWriter)
 	l.Printf("Completed %v %s in %v", res.Status(), http.StatusText(res.Status()), time.Since(start))
-	l.Println(gencurl.FromRequest(r))
+	l.Println(gencurl.FromRequestWithBody(r, body))
 	l.Println(`-----`)
 }
 
@@ -40,4 +42,5 @@ func (l *CurlLogger) ServeHTTP(rw http.ResponseWriter, r *http.Request, next htt
 // Static - Static File Serving
 func Gateway() *negroni.Negroni {
 	return negroni.New(negroni.NewRecovery(), NewLogger())
+	//	return negroni.New(NewLogger(), NewProxy())
 }
