@@ -11,12 +11,11 @@ func printAppUsage() {
 	fmt.Fprintln(os.Stderr, "Web middleware app to log, proxy requests etc.\n")
 	fmt.Fprintf(os.Stderr, "Usage: %s [options] [arg]\n\n", os.Args[0])
 	fmt.Fprintln(os.Stderr, `Options:`)
-	fmt.Fprintln(os.Stderr, "  -help | -h show Print this help")
 
 	flag.PrintDefaults()
 
 	fmt.Fprintf(os.Stderr, "\nArguments:\n")
-	fmt.Fprintf(os.Stderr, "  %s - initialize example config for running application. If file exists, then it will be reset to defaults\n", argCfgInit)
+	fmt.Fprintf(os.Stderr, "  %s\n    	initialize example config for running application. If file exists, then it will be reset to defaults\n", argCfgInit)
 	fmt.Fprintf(os.Stderr, "\nExample:\n  %s %s \n\n", os.Args[0], argCfgInit)
 }
 

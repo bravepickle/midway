@@ -9,17 +9,24 @@ import (
 const defaultConfigPath = `./config.yaml`
 const argCfgInit = `config:init`
 
+var optHelp bool
 var cfgPath string
 var Debug bool
 var Config ConfigStruct
 
 func init() {
 	flag.BoolVar(&Debug, `debug`, false, `Enable debug mode`)
+	flag.BoolVar(&optHelp, `help`, false, `Print command usage help`)
 	flag.StringVar(&cfgPath, `f`, defaultConfigPath, `Path to config file in YAML format`)
 }
 
 func main() {
 	flag.Parse()
+
+	if optHelp {
+		printAppUsage()
+		return
+	}
 
 	if !parseAppInput(cfgPath) {
 		return
