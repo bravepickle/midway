@@ -9,8 +9,8 @@ import (
 
 func NewUrl() *url.URL {
 	return &url.URL{
-		Scheme: targetSchema,
-		Host:   targetHost,
+		Scheme: Config.Target.Scheme,
+		Host:   Config.Target.HostPortString(),
 	}
 }
 

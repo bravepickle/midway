@@ -21,17 +21,24 @@ func NewLogger() *CurlLogger {
 
 func (l *CurlLogger) ServeHTTP(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 	start := time.Now()
-	l.Println(`-----`)
-	l.Printf("Started %s %s", r.Method, r.URL.Path)
+	if Debug {
 
-	body := gencurl.CopyBody(r)
+		l.Println(`-----`)
+		l.Printf("[%s] Started %s %s", start, r.Method, r.URL.Path)
 
-	next(rw, r)
+		body := gencurl.CopyBody(r)
+		next(rw, r)
 
-	res := rw.(negroni.ResponseWriter)
-	l.Printf("Completed %v %s in %v", res.Status(), http.StatusText(res.Status()), time.Since(start))
-	l.Println(gencurl.FromRequestWithBody(r, body))
-	l.Println(`-----`)
+		res := rw.(negroni.ResponseWriter)
+		l.Printf("Completed %v %s in %v", res.Status(), http.StatusText(res.Status()), time.Since(start))
+
+		l.Println(gencurl.FromRequestWithBody(r, body))
+	} else {
+		body := gencurl.CopyBody(r)
+		next(rw, r)
+		l.Printf(`[%s] %s`, start, gencurl.FromRequestWithBody(r, body))
+	}
+
 }
 
 // Classic returns a new Negroni instance with the default middleware already
