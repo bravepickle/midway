@@ -72,7 +72,7 @@ func main() {
 
 // init Stubman
 func initStubman(mux *http.ServeMux, n *negroni.Negroni) error {
-	db := stubman.NewDb(Config.Db.DbName)
+	db := stubman.NewDb(Config.Db.DbName, true)
 	err := db.Init()
 	if err != nil {
 		return err
@@ -88,6 +88,19 @@ func initStubman(mux *http.ServeMux, n *negroni.Negroni) error {
 	if Debug {
 		fmt.Printf("Stubman path: http://%s%s/\n", Config.App.String(), prefixPathStubman)
 	}
+
+	// --------
+	//	repo := stubman.NewStubRepo(db)
+
+	//	models, err := repo.FindAll()
+	//	if err != nil {
+	//		fmt.Fprintln(os.Stderr, err.Error())
+	//		return nil
+	//	}
+
+	//	fmt.Println(`Models: `, models)
+
+	// --------
 
 	return nil
 }

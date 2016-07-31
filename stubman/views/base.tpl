@@ -5,7 +5,6 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="static/css/bootstrap.min.css" />
 	<link rel="stylesheet" href="static/css/bootstrap-theme.min.css" />
-	<script src="static/js/bootstrap.min.js" crossorigin="anonymous"></script>
 
     {{ template "title" . }}
 </head>
@@ -15,9 +14,10 @@
 	<div class="container">
     {{ template "content" . }}
 	</div>
-<footer>
-    Beta Version
-</footer>
+
+	<script src="static/js/jquery.min.js" crossorigin="anonymous"></script>
+	<script src="static/js/bootstrap.min.js" crossorigin="anonymous"></script>
+	
 </body>
 </html>
 {{ end }}

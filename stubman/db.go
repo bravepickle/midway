@@ -13,11 +13,11 @@ import (
 )
 
 const sqlSchemaInit = `
-create table stub (id integer not null primary key AUTOINCREMENT, name text, request_method text, request_uri text, request text, response text, created text);
+create table stub (id integer not null primary key AUTOINCREMENT, name text, request_method text, request_uri text, request text, response text, created datetime);
 `
 
 // main db connection for app
-var DbConn *Db
+var DefaultDb *Db
 
 type Db struct {
 	DbName     string
@@ -26,7 +26,7 @@ type Db struct {
 
 // MakeDefault sets current DB as default
 func (d *Db) MakeDefault() {
-	DbConn = d // just specify as default DB
+	DefaultDb = d // just specify as default DB
 }
 
 func (d *Db) Close() {
@@ -104,9 +104,13 @@ func (d *Db) ImportFromFile(path string) error {
 	return nil
 }
 
-func NewDb(dbname string) *Db {
+func NewDb(dbname string, setAsDefault bool) *Db {
 	db := &Db{DbName: dbname}
 	db.Init()
+
+	if setAsDefault {
+		db.MakeDefault()
+	}
 
 	return db
 }

@@ -36,7 +36,7 @@ func parseAppInput(cfg string) bool {
 			}
 
 		case argDbInit:
-			db := stubman.NewDb(Config.Db.DbName)
+			db := stubman.NewDb(Config.Db.DbName, true)
 			if err := db.Reset(); err != nil {
 				fmt.Fprintf(os.Stderr, "Failed to init DB. Reason: %s\n", err.Error())
 			} else {
@@ -49,7 +49,7 @@ func parseAppInput(cfg string) bool {
 				return false
 			}
 
-			db := stubman.NewDb(Config.Db.DbName)
+			db := stubman.NewDb(Config.Db.DbName, true)
 			if err := db.ImportFromFile(flag.Arg(1)); err != nil {
 				fmt.Fprintf(os.Stderr, "Failed to import file \"%s\" to DB. Reason: %s\n", flag.Arg(1), err.Error())
 			} else {
