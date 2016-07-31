@@ -21,8 +21,8 @@ func NewLogger() *CurlLogger {
 
 func (l *CurlLogger) ServeHTTP(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 	start := time.Now()
-	if Debug {
 
+	if Debug {
 		l.Println(`-----`)
 		l.Printf("[%s] Started %s %s", start, r.Method, r.URL.Path)
 

@@ -4,7 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"net/http"
-	//	"path/filepath"
+	"os"
 
 	"github.com/bravepickle/midway/stubman"
 	"github.com/urfave/negroni"
@@ -12,6 +12,8 @@ import (
 
 const defaultConfigPath = `./config.yaml`
 const argCfgInit = `config:init`
+const argDbInit = `db:init`
+const argDbImport = `db:import`
 const prefixPathStubman = `/stubman`
 
 var optHelp bool
@@ -33,11 +35,11 @@ func main() {
 		return
 	}
 
+	initConfig(cfgPath, &Config)
+
 	if !parseAppInput(cfgPath) {
 		return
 	}
-
-	initConfig(cfgPath, &Config)
 
 	if Debug {
 		fmt.Println(`Debug enabled`)
@@ -46,7 +48,11 @@ func main() {
 	mux := http.NewServeMux()
 	n := Gateway() // Includes some default middlewares
 
-	initStubman(mux, n)
+	err := initStubman(mux, n)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err.Error())
+		return
+	}
 
 	//	return
 
@@ -64,25 +70,24 @@ func main() {
 	http.ListenAndServe(Config.App.String(), n)
 }
 
-func initStubman(mux *http.ServeMux, n *negroni.Negroni) {
-	// init Stubman
+// init Stubman
+func initStubman(mux *http.ServeMux, n *negroni.Negroni) error {
+	db := stubman.NewDb(Config.Db.DbName)
+	err := db.Init()
+	if err != nil {
+		return err
+	}
+
+	db.MakeDefault()
+
 	stubman.AddStubmanCrudHandlers(prefixPathStubman, mux)
+
 	// forward all static files to directory
-
-	//	dir := http.Dir(`/var/www/golang/src/github.com/bravepickle/midway` + prefixPathStubman + string(filepath.Separator) + stubman.StaticPath)
-	//	dir := http.Dir(prefixPathStubman + string(filepath.Separator) + stubman.StaticPath)
-	//	dir := http.Dir(prefixPathStubman + string(filepath.Separator) + stubman.StaticPath)
-	//	dir := http.Dir(stubman.StaticPath)
-	dir := http.Dir(``)
-	//	fmt.Println(`Directory `, dir)
-	//	return
-
-	//	n.Use(negroni.NewStatic(http.Dir(fmt.Sprintf(`%s/%s`, prefixPathStubman, stubman.StaticPath))))
-	handler := negroni.NewStatic(dir)
-	//	handler.Prefix = prefixPathStubman
-	n.Use(handler)
+	n.Use(negroni.NewStatic(http.Dir(``)))
 
 	if Debug {
 		fmt.Printf("Stubman path: http://%s%s/\n", Config.App.String(), prefixPathStubman)
 	}
+
+	return nil
 }

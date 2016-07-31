@@ -9,6 +9,16 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+// DbConfigStruct contains DB connection details for Stubman
+type DbConfigStruct struct {
+	DbName string `yaml:"dbname,omitempty"`
+}
+
+// HostPortString generates string scheme://host:port
+func (t *DbConfigStruct) String() string {
+	return fmt.Sprintf(`sqlite3://%s`, t.DbName)
+}
+
 // TargetConfigStruct struct contains target subsection for app config
 type TargetConfigStruct struct {
 	Scheme string `yaml:"scheme,omitempty"`
@@ -30,10 +40,11 @@ func (t *TargetConfigStruct) HostPortString() string {
 type ConfigStruct struct {
 	Target TargetConfigStruct `yaml:"target,omitempty"`
 	App    AppConfigStruct    `yaml:"app,omitempty"`
+	Db     DbConfigStruct     `yaml:"db,omitempty"`
 }
 
 func (c *ConfigStruct) String() string {
-	return fmt.Sprintf(`{target: %s, app: %s}`, c.Target.String(), c.App.String())
+	return fmt.Sprintf(`{app: %s, target: %s, db: %s}`, c.Target.String(), c.App.String(), c.Db.String())
 }
 
 type AppConfigStruct struct {
