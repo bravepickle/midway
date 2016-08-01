@@ -57,25 +57,31 @@ func (t *AppConfigStruct) String() string {
 }
 
 // initConfig parses config from file and puts it to config struct
-func initConfig(cfgPath string, config *ConfigStruct) {
+func initConfig(cfgPath string, config *ConfigStruct) bool {
 	if cfgPath == `` {
 		cfgPath = defaultConfigPath
 	}
 
 	cfgFile, err := os.Open(cfgPath)
 	if err != nil {
-		panic(err)
+		fmt.Fprintf(os.Stderr, "Failed to open config: %s. Use %s %s to init config\n",
+			cfgPath, os.Args[0], argCfgInit)
+		return false
 	}
 
 	cfgFileString, err := ioutil.ReadAll(cfgFile)
 	if err != nil {
-		panic(err)
+		fmt.Fprintf(os.Stderr, "Failed to read config: %s\n", err.Error())
+		return false
 	}
 
 	err = yaml.Unmarshal(cfgFileString, &config)
 	if err != nil {
-		panic(err)
+		fmt.Fprintf(os.Stderr, "Failed to parse config: %s\n", err.Error())
+		return false
 	}
+
+	return true
 }
 
 func saveToFile(str string, cfgPath string) (bool, error) {

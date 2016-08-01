@@ -35,7 +35,9 @@ func main() {
 		return
 	}
 
-	initConfig(cfgPath, &Config)
+	if !initConfig(cfgPath, &Config) {
+		return
+	}
 
 	if !parseAppInput(cfgPath) {
 		return
