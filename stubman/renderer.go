@@ -30,7 +30,7 @@ func RenderPage(tpl string, p interface{}, w io.Writer) {
 }
 
 func InitTemplates() {
-	tplNames := []string{`index.tpl`, `edit.tpl`}
+	tplNames := []string{`index.tpl`, `edit.tpl`, `create.tpl`}
 	parsedTemplates = make(map[string]*template.Template)
 	sep := string(filepath.Separator)
 	viewsPrefix := StubmanPathPrefix + sep + viewsDir + sep

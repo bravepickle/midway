@@ -126,3 +126,10 @@ func NewStubRepo(db *Db) *StubRepo {
 
 	return &StubRepo{Table: stubTable, Conn: db.Connection}
 }
+
+func NewNullObjectStub() *Stub {
+	return &Stub{
+		RequestMethod: `GET`,
+		RequestParsed: RequestStub{Headers: []string{`Content-Type: application/json`}},
+		Request:       `{"headers": ["Content-Type: application/json"], "body":""}`}
+}

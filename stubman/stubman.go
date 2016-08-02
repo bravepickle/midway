@@ -68,6 +68,13 @@ func AddStubmanCrudHandlers(prefix string, mux *http.ServeMux) {
 		RenderPage(`index.tpl`, page, w)
 	})
 
+	// create
+	mux.HandleFunc(pcat.fullPath(`/create/`), func(w http.ResponseWriter, req *http.Request) {
+		model := NewNullObjectStub()
+		page := Page{CreatePage: true, Data: model}
+		RenderPage(`create.tpl`, page, w)
+	})
+
 	pathRegId := regexp.MustCompile(`\d+$`)
 	// edit
 	mux.HandleFunc(pcat.fullPath(`/edit/`), func(w http.ResponseWriter, req *http.Request) {

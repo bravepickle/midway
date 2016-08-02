@@ -13,6 +13,20 @@ function initEdit() {
 		respList.append(respHeader)
 	});
 	
+	var method = $('#model-request_method')
+	var req_container = $('#request_body_container')
+	if (method.val() == 'GET') {
+		req_container.hide()
+	}
+	method.change(function(e) {
+		e.preventDefault();
+		if (method.val() == 'GET') {
+			req_container.hide()
+		} else {
+			req_container.show()
+		}
+	});
+	
 	$('.decoder').click(function(e) {
 		e.preventDefault();
 		var el = $(this).closest('.form-group').find('textarea');
