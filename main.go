@@ -64,7 +64,8 @@ func main() {
 		if !Config.Proxy.Disabled {
 			ProxyRequest(w, req)
 		} else {
-			w.Write([]byte(fmt.Sprintf(`Request %s was received at %s`, req.URL.String(), time.Now().String())))
+			w.Header().Add(`X-Default-Page`, `true`)
+			w.Write([]byte(fmt.Sprintf("Request %s was received at %s\n", req.URL.String(), time.Now().String())))
 		}
 	})
 
@@ -95,19 +96,6 @@ func initStubman(mux *http.ServeMux, n *negroni.Negroni) error {
 	if Debug {
 		fmt.Printf("Stubman path: http://%s%s/\n", Config.App.String(), prefixPathStubman)
 	}
-
-	// --------
-	//	repo := stubman.NewStubRepo(db)
-
-	//	models, err := repo.FindAll()
-	//	if err != nil {
-	//		fmt.Fprintln(os.Stderr, err.Error())
-	//		return nil
-	//	}
-
-	//	fmt.Println(`Models: `, models)
-
-	// --------
 
 	return nil
 }

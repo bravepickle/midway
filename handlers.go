@@ -7,6 +7,8 @@ import (
 	"os"
 	"time"
 
+	"net/http/httptest"
+
 	"github.com/bravepickle/gencurl"
 	"github.com/urfave/negroni"
 )
@@ -72,12 +74,15 @@ func newFileLog(file *os.File) *log.Logger {
 func (l *CurlLogger) ServeHTTP(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 	start := time.Now()
 
+	nextRw := httptest.NewRecorder()
+
 	if Debug {
 		l.Request.Println(`-----`)
 		l.Request.Printf("[%s] Started %s %s", start, r.Method, r.URL.Path)
 
 		body := gencurl.CopyBody(r)
-		next(rw, r)
+		//		next(rw, r)
+		next(nextRw, r)
 
 		res := rw.(negroni.ResponseWriter)
 		l.Request.Printf("Completed %v %s in %v", res.Status(), http.StatusText(res.Status()), time.Since(start))
@@ -85,11 +90,68 @@ func (l *CurlLogger) ServeHTTP(rw http.ResponseWriter, r *http.Request, next htt
 		l.Request.Println(gencurl.FromRequestWithBody(r, body))
 	} else {
 		body := gencurl.CopyBody(r)
-		next(rw, r)
+		//		next(rw, r)
+		next(nextRw, r)
 		l.Request.Printf(`[%s] %s`, start, gencurl.FromRequestWithBody(r, body))
 	}
 
+	l.Response.Printf("STATUS CODE: %d\n", nextRw.Code)
+	l.Response.Printf("HEADERS: %s\n", nextRw.Header())
+	l.Response.Println(`BODY: `, nextRw.Body.String())
+
+	rw.Write([]byte(nextRw.Body.String()))
+
+	for k, vals := range nextRw.Header() {
+		for _, v := range vals {
+			rw.Header().Add(k, v)
+		}
+	}
+
+	nextRw.Header().Set(`X-TRY`, `true`)
+	nextRw.Header().Add(`X-TRY2`, `true`)
+
+	rw.Header().Set(`X-TRY`, `true`)
+	rw.Header().Add(`X-TRY2`, `true`)
+
+	//	rw.WriteHeader(nextRw.Code)
+
+	//	nextRw.Flush()
 }
+
+//func (l *CurlLogger) ServeHTTP(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+//	if Config.Log.Response.Disabled {
+//		l.serveHTTPBase(rw, r, next)
+//	} else {
+//		l.serveHTTPResponse(rw, r, next)
+//	}
+
+//}
+
+//// serveHTTPResponse serves response and writes response to logs
+//func (l *CurlLogger) serveHTTPResponse(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+//	start := time.Now()
+//	nextRw := httptest.NewRecorder()
+
+//	if Debug {
+//		l.Request.Println(`-----`)
+//		l.Request.Printf("[%s] Started %s %s", start, r.Method, r.URL.Path)
+
+//		body := gencurl.CopyBody(r)
+//		next(*nextRw, r)
+
+//		res := rw.(negroni.ResponseWriter)
+//		l.Request.Printf("Completed %v %s in %v", res.Status(), http.StatusText(res.Status()), time.Since(start))
+
+//		l.Request.Println(gencurl.FromRequestWithBody(r, body))
+//	} else {
+//		body := gencurl.CopyBody(r)
+//		next(*nextRw, r)
+//		l.Request.Printf(`[%s] %s`, start, gencurl.FromRequestWithBody(r, body))
+//	}
+
+//	// TODO: add condition checkers
+//	l.Response.Printf(`Status: %d Body: %s`, *nextRw.Code, *nextRw.Body.String())
+//}
 
 // Classic returns a new Negroni instance with the default middleware already
 // in the stack.
@@ -99,5 +161,4 @@ func (l *CurlLogger) ServeHTTP(rw http.ResponseWriter, r *http.Request, next htt
 // Static - Static File Serving
 func Gateway() *negroni.Negroni {
 	return negroni.New(negroni.NewRecovery(), NewLogger())
-	//	return negroni.New(NewLogger(), NewProxy())
 }
