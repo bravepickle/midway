@@ -2,3 +2,4 @@ midway
 config.yaml
 data.sqlite
 stub.sql
+*.log

@@ -9,8 +9,8 @@ import (
 
 func NewUrl() *url.URL {
 	return &url.URL{
-		Scheme: Config.Target.Scheme,
-		Host:   Config.Target.HostPortString(),
+		Scheme: Config.Proxy.Scheme,
+		Host:   Config.Proxy.HostPortString(),
 	}
 }
 

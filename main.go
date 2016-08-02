@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/bravepickle/midway/stubman"
 	"github.com/urfave/negroni"
@@ -60,7 +61,11 @@ func main() {
 
 	// handle the rest of URIs
 	mux.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
-		ProxyRequest(w, req)
+		if !Config.Proxy.Disabled {
+			ProxyRequest(w, req)
+		} else {
+			w.Write([]byte(fmt.Sprintf(`Request %s was received at %s`, req.URL.String(), time.Now().String())))
+		}
 	})
 
 	n.UseHandler(mux)
