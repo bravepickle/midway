@@ -71,4 +71,5 @@ http://localhost:3000/stubman - entrypoint for handling stub service requests an
 - add multiplexer hendler: send copy of request to another address asynchoneously, without waiting for response (use goroutines?). Test it output
 - add to config optional preconditions to start logging requests and responses, using RegEx
 - in Stubman add button to generate CURL request for given stub
+- log time taken for handling requests
 

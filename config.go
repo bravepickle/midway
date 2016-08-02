@@ -9,6 +9,18 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+// ConfigStruct struct contains main application config
+type ConfigStruct struct {
+	Proxy ProxyConfigStruct `yaml:"proxy,omitempty"`
+	App   AppConfigStruct   `yaml:"app,omitempty"`
+	Db    DbConfigStruct    `yaml:"db,omitempty"`
+	Log   LogConfigStruct   `yaml:"log,omitempty"`
+}
+
+func (c *ConfigStruct) String() string {
+	return fmt.Sprintf(`{app: %s, proxy: %s, db: %s, log: %s}`, c.Proxy.String(), c.App.String(), c.Db.String(), c.Log.String())
+}
+
 // DbConfigStruct contains DB connection details for Stubman
 type DbConfigStruct struct {
 	DbName string `yaml:"dbname,omitempty"`
@@ -19,34 +31,69 @@ func (t *DbConfigStruct) String() string {
 	return fmt.Sprintf(`sqlite3://%s`, t.DbName)
 }
 
-// TargetConfigStruct struct contains target subsection for app config
-type TargetConfigStruct struct {
-	Scheme string `yaml:"scheme,omitempty"`
-	Port   string `yaml:"port,omitempty"`
-	Host   string `yaml:"host,omitempty"`
+// ProxyConfigStruct struct contains reverse proxy configuration
+type ProxyConfigStruct struct {
+	Disabled bool   `yaml:"disabled,omitempty"`
+	Scheme   string `yaml:"scheme,omitempty"`
+	Port     string `yaml:"port,omitempty"`
+	Host     string `yaml:"host,omitempty"`
 }
 
 // HostPortString generates string scheme://host:port
-func (t *TargetConfigStruct) String() string {
-	return fmt.Sprintf(`%s://%s:%s`, t.Scheme, t.Host, t.Port)
+func (t *ProxyConfigStruct) String() string {
+	if t.Disabled {
+		return fmt.Sprint(`disabled`)
+	} else {
+		return fmt.Sprintf(`%s://%s:%s`, t.Scheme, t.Host, t.Port)
+	}
 }
 
 // HostPortString generates string host:port
-func (t *TargetConfigStruct) HostPortString() string {
+func (t *ProxyConfigStruct) HostPortString() string {
 	return fmt.Sprintf(`%s:%s`, t.Host, t.Port)
 }
 
-// ConfigStruct struct contains main application config
-type ConfigStruct struct {
-	Target TargetConfigStruct `yaml:"target,omitempty"`
-	App    AppConfigStruct    `yaml:"app,omitempty"`
-	Db     DbConfigStruct     `yaml:"db,omitempty"`
+type RequestLogConfigStruct struct {
+	Disabled   bool                       `yaml:"disabled,omitempty"`
+	Output     string                     `yaml:"output,omitempty"`
+	Conditions RequestLogCondConfigStruct `yaml:"conditions,omitempty"`
 }
 
-func (c *ConfigStruct) String() string {
-	return fmt.Sprintf(`{app: %s, target: %s, db: %s}`, c.Target.String(), c.App.String(), c.Db.String())
+type RequestLogCondConfigStruct struct {
+	Disabled bool   `yaml:"disabled,omitempty"`
+	Method   string `yaml:"method,omitempty"`
+	Uri      string `yaml:"uri,omitempty"`
+	Header   string `yaml:"header,omitempty"`
+	Body     string `yaml:"body,omitempty"`
 }
 
+type ResponseLogConfigStruct struct {
+	Disabled   bool                       `yaml:"disabled,omitempty"`
+	Output     string                     `yaml:"output,omitempty"`
+	Conditions RequestLogCondConfigStruct `yaml:"conditions,omitempty"`
+}
+
+type ResponseLogCondConfigStruct struct {
+	Disabled bool   `yaml:"disabled,omitempty"`
+	Uri      string `yaml:"uri,omitempty"`
+	Header   string `yaml:"header,omitempty"`
+	Body     string `yaml:"body,omitempty"`
+}
+
+// LogConfigStruct contains DB connection details for Stubman
+type LogConfigStruct struct {
+	Disabled bool                    `yaml:"disabled,omitempty"`
+	Request  RequestLogConfigStruct  `yaml:"request,omitempty"`
+	Response ResponseLogConfigStruct `yaml:"response,omitempty"`
+	ErrorLog string                  `yaml:"error_log,omitempty"`
+}
+
+// String generates string
+func (t *LogConfigStruct) String() string {
+	return fmt.Sprintf(`{error: %s, request: %s, response: %s}`, t.ErrorLog, t.Request.Output, t.Response.Output)
+}
+
+// AppConfigStruct contain common application settings
 type AppConfigStruct struct {
 	Port string
 	Host string
