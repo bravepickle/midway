@@ -76,7 +76,7 @@ func AddStubmanCrudHandlers(prefix string, mux *http.ServeMux) {
 			//			body, _ := ioutil.ReadAll(req.Body)
 			req.ParseForm()
 			log.Println(`REQUEST BODY: `, string(req.Form.Get(`request[headers][]`)))
-			log.Println(`REQUEST BODY2: `, string(req.Form.Get(`request`)))
+			log.Printf(`REQUEST BODY2: %v`, req.Form)
 
 		}
 		model := NewNullObjectStub()
