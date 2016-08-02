@@ -5,6 +5,7 @@ package stubman
 import (
 	"bytes"
 	"fmt"
+	//	"io/ioutil"
 	"log"
 	"net/http"
 	"regexp"
@@ -70,6 +71,14 @@ func AddStubmanCrudHandlers(prefix string, mux *http.ServeMux) {
 
 	// create
 	mux.HandleFunc(pcat.fullPath(`/create/`), func(w http.ResponseWriter, req *http.Request) {
+		if req.Method == `POST` {
+
+			//			body, _ := ioutil.ReadAll(req.Body)
+			req.ParseForm()
+			log.Println(`REQUEST BODY: `, string(req.Form.Get(`request[headers][]`)))
+			log.Println(`REQUEST BODY2: `, string(req.Form.Get(`request`)))
+
+		}
 		model := NewNullObjectStub()
 		page := Page{CreatePage: true, Data: model}
 		RenderPage(`create.tpl`, page, w)
