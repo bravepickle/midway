@@ -1,0 +1,39 @@
+.container {
+	margin-top: 20px;	
+}
+
+.main-footer {
+	background-color: #a0c0c7;
+	display: block;
+	text-align: center;
+	font-size: 1em;
+	padding: 20px;
+	margin-top: 10px;
+	border-radius: 6px;
+}
+
+.add-header-container {
+	padding-top: 20px;
+}
+
+.headers-group .form-control {
+	width: 50%;
+	
+	display: inline-block;
+}
+
+.headers-group a {
+	font-size: 1.2em;
+	padding-left: 5px;
+	position: relative;
+	top: 3px;
+	color: #b92c28;
+}
+
+.headers-list > div {
+	padding-top: 10px;
+}
+
+.stub-form fieldset {
+	padding-bottom: 30px;
+}

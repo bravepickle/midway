@@ -40,3 +40,10 @@ func InitTemplates() {
 		parsedTemplates[name] = template.Must(parsed, err)
 	}
 }
+
+type Page struct {
+	Data       interface{} // Passed data to template
+	HomePage   bool
+	CreatePage bool
+	EditPage   bool
+}

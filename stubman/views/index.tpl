@@ -1,5 +1,5 @@
 {{ define "title"}}<title>Stubman | Stubs List</title>{{ end }}
-{{ define "content"}}<h1>Stubs List</h1>
+{{ define "content"}}<h2>List</h2>
 <button type="button" class="btn btn-success" id="btn-create">Create</button>
 <table class="table table-striped">
 <thead>
@@ -12,7 +12,7 @@
 	</tr>
 </thead>
 <tbody>
-{{range .}}
+{{range .Data}}
     <tr>
 		<td>{{.Id}}</td>
 		<td>{{.Name}}</td>

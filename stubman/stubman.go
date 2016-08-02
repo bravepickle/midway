@@ -39,6 +39,18 @@ func init() {
 func AddStubmanCrudHandlers(prefix string, mux *http.ServeMux) {
 	pcat := pathConcat{prefix}
 
+	// static files
+	pathRegExt := regexp.MustCompile(`\.\w{2,4}$`)
+	mux.HandleFunc(pcat.fullPath(`/static/`), func(w http.ResponseWriter, req *http.Request) {
+		ext := pathRegExt.FindString(req.URL.Path)
+		if ext == `` {
+			ext = `unknown`
+		}
+
+		w.Header().Add(`X-Test-Extension`, ext)
+		w.WriteHeader(403)
+	})
+
 	// list all stubs
 	mux.HandleFunc(pcat.fullPath(`/`), func(w http.ResponseWriter, req *http.Request) {
 		repo := NewStubRepo(nil)
@@ -52,7 +64,8 @@ func AddStubmanCrudHandlers(prefix string, mux *http.ServeMux) {
 			return
 		}
 
-		RenderPage(`index.tpl`, models, w)
+		page := Page{HomePage: true, Data: models}
+		RenderPage(`index.tpl`, page, w)
 	})
 
 	pathRegId := regexp.MustCompile(`\d+$`)
@@ -92,6 +105,7 @@ func AddStubmanCrudHandlers(prefix string, mux *http.ServeMux) {
 			return
 		}
 
-		RenderPage(`edit.tpl`, model, w)
+		page := Page{EditPage: true, Data: model}
+		RenderPage(`edit.tpl`, page, w)
 	})
 }
