@@ -10,7 +10,7 @@ function initIndex() {
 	})
 		
 	$('#btn-del-confirm').click(function() {
-		$.post('/stubman/delete/1', {}, function (resp) { 
+		$.post(delUri, {}, function (resp) { 
 			top.location.reload(); // reload page to see results
 		});
 	});

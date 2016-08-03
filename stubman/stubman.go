@@ -123,7 +123,7 @@ func AddStubmanCrudHandlers(prefix string, mux *http.ServeMux) {
 			stub := NewStubFromRequest(req)
 			stub.Id = int64(idNum)
 
-			//			fmt.Printf("Model: %v\n", stub)
+			fmt.Printf("Model: %v\n", stub)
 
 			err := repo.Update(stub)
 			if err != nil {
@@ -187,7 +187,7 @@ func NewStubFromRequest(req *http.Request) *Stub {
 
 	stub.Name = string(req.Form.Get(`name`))
 	stub.RequestMethod = string(req.Form.Get(`request_method`))
-	stub.RequestMethod = string(req.Form.Get(`request_uri`))
+	stub.RequestUri = string(req.Form.Get(`request_uri`))
 	stub.RequestParsed.Body = string(req.Form.Get(`request[body]`))
 	for _, val := range req.Form[`request[headers][]`] {
 		stub.RequestParsed.Headers = append(stub.RequestParsed.Headers, string(val))
