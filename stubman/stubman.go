@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"regexp"
 	"strconv"
+	"time"
 )
 
 const StaticPath = `static`
@@ -25,10 +26,6 @@ func (p *pathConcat) fullPath(path string) string {
 	buf := bytes.NewBufferString(p.prefix)
 	buf.WriteString(path)
 
-	//	if Debug {
-	fmt.Println(`Generated path for Stubman: `, buf.String())
-	//	}
-
 	return buf.String()
 }
 
@@ -40,18 +37,6 @@ func init() {
 func AddStubmanCrudHandlers(prefix string, mux *http.ServeMux) {
 	//	if Config.
 	pcat := pathConcat{prefix}
-
-	// static files
-	pathRegExt := regexp.MustCompile(`\.\w{2,4}$`)
-	mux.HandleFunc(pcat.fullPath(`/static/`), func(w http.ResponseWriter, req *http.Request) {
-		ext := pathRegExt.FindString(req.URL.Path)
-		if ext == `` {
-			ext = `unknown`
-		}
-
-		w.Header().Add(`X-Test-Extension`, ext)
-		w.WriteHeader(403)
-	})
 
 	// list all stubs
 	mux.HandleFunc(pcat.fullPath(`/`), func(w http.ResponseWriter, req *http.Request) {
@@ -73,13 +58,24 @@ func AddStubmanCrudHandlers(prefix string, mux *http.ServeMux) {
 	// create
 	mux.HandleFunc(pcat.fullPath(`/create/`), func(w http.ResponseWriter, req *http.Request) {
 		if req.Method == `POST` {
-
-			//			body, _ := ioutil.ReadAll(req.Body)
 			req.ParseForm()
-			log.Println(`REQUEST BODY: `, string(req.Form.Get(`request[headers][]`)))
-			log.Printf(`REQUEST BODY2: %v`, req.Form)
+			stub := NewStubFromRequest(req)
+			repo := NewStubRepo(nil)
 
+			id, err := repo.Insert(stub)
+			if err != nil {
+				w.Write([]byte(err.Error()))
+				w.WriteHeader(http.StatusBadRequest)
+
+				return
+			}
+
+			w.Header().Add(`Location`, fmt.Sprintf(pcat.fullPath(`/edit/%d`), id))
+			w.WriteHeader(http.StatusFound)
+
+			return
 		}
+
 		model := NewNullObjectStub()
 		page := Page{CreatePage: true, Data: model}
 		RenderPage(`create.tpl`, page, w)
@@ -91,7 +87,68 @@ func AddStubmanCrudHandlers(prefix string, mux *http.ServeMux) {
 		id := pathRegId.FindString(req.URL.Path)
 		if id == `` {
 			w.Write([]byte(`Not Found`))
-			w.WriteHeader(404)
+			w.WriteHeader(http.StatusNotFound)
+
+			return
+		}
+
+		repo := NewStubRepo(nil)
+		idNum, err := strconv.Atoi(id)
+		if err != nil {
+			log.Println(err.Error())
+			w.Write([]byte(err.Error()))
+			w.WriteHeader(http.StatusBadRequest)
+
+			return
+		}
+
+		model, err := repo.Find(idNum)
+		if err != nil {
+			log.Println(err.Error())
+			w.Write([]byte(err.Error()))
+			w.WriteHeader(http.StatusBadRequest)
+
+			return
+		}
+
+		if model.Id == 0 {
+			w.Write([]byte(`Not Found`))
+			w.WriteHeader(http.StatusNotFound)
+
+			return
+		}
+
+		if req.Method == `POST` {
+			req.ParseForm()
+			stub := NewStubFromRequest(req)
+			stub.Id = int64(idNum)
+
+			//			fmt.Printf("Model: %v\n", stub)
+
+			err := repo.Update(stub)
+			if err != nil {
+				w.Write([]byte(err.Error()))
+				w.WriteHeader(http.StatusBadRequest)
+
+				return
+			}
+
+			w.Header().Add(`Location`, fmt.Sprintf(pcat.fullPath(`/edit/%d`), idNum))
+			w.WriteHeader(http.StatusFound)
+
+			return
+		}
+
+		page := Page{EditPage: true, Data: model}
+		RenderPage(`edit.tpl`, page, w)
+	})
+
+	// delete
+	mux.HandleFunc(pcat.fullPath(`/delete/`), func(w http.ResponseWriter, req *http.Request) {
+		id := pathRegId.FindString(req.URL.Path)
+		if id == `` {
+			w.Write([]byte(`Not Found`))
+			w.WriteHeader(http.StatusNotFound)
 
 			return
 		}
@@ -106,23 +163,42 @@ func AddStubmanCrudHandlers(prefix string, mux *http.ServeMux) {
 			return
 		}
 
-		model, err := repo.Find(idNum)
+		deleted, err := repo.Delete(idNum)
 		if err != nil {
 			log.Println(err.Error())
 			w.Write([]byte(err.Error()))
-			w.WriteHeader(400)
+			w.WriteHeader(500)
 
 			return
 		}
 
-		if model.Id == 0 {
+		if deleted {
 			w.Write([]byte(`Not Found`))
-			w.WriteHeader(404)
-
-			return
+			w.WriteHeader(http.StatusNotFound)
+		} else {
+			w.WriteHeader(http.StatusNoContent)
 		}
-
-		page := Page{EditPage: true, Data: model}
-		RenderPage(`edit.tpl`, page, w)
 	})
+}
+
+func NewStubFromRequest(req *http.Request) *Stub {
+	stub := &Stub{Created: time.Now()}
+	log.Println(`REQUEST BODY: `, string(req.Form.Get(`request[headers][]`)))
+
+	stub.Name = string(req.Form.Get(`name`))
+	stub.RequestMethod = string(req.Form.Get(`request_method`))
+	stub.RequestMethod = string(req.Form.Get(`request_uri`))
+	stub.RequestParsed.Body = string(req.Form.Get(`request[body]`))
+	for _, val := range req.Form[`request[headers][]`] {
+		stub.RequestParsed.Headers = append(stub.RequestParsed.Headers, string(val))
+	}
+
+	stub.ResponseParsed.Body = string(req.Form.Get(`response[body]`))
+	for _, val := range req.Form[`response[headers][]`] {
+		stub.ResponseParsed.Headers = append(stub.ResponseParsed.Headers, string(val))
+	}
+
+	stub.Encode()
+
+	return stub
 }

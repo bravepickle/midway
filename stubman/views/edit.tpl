@@ -6,11 +6,11 @@
 <legend>Basic</legend>
   <div class="form-group">
     <label for="model-id">ID</label>
-    <input readonly="readonly" type="text" class="form-control" value="{{.Data.Id}}" id="model-id" name="model[id]" placeholder="ID">
+    <input readonly="readonly" type="text" class="form-control" value="{{.Data.Id}}" id="model-id" placeholder="ID">
   </div>
   <div class="form-group">
     <label for="model-name">Name</label>
-    <input type="text" class="form-control" value="{{.Data.Name}}" id="model-name" name="model[name]" placeholder="Name">
+    <input type="text" class="form-control" value="{{.Data.Name}}" id="model-name" name="name" placeholder="Name">
   </div>
 
   <div class="form-group">
@@ -23,7 +23,7 @@
 <legend>Request</legend>
   <div class="form-group">
     <label for="model-request_method">Request Method</label>
-	<select  class="form-control" id="model-request_method" name="model[request_method]">
+	<select  class="form-control" id="model-request_method" name="request_method">
 	  <option {{ if eq .Data.RequestMethod `` }} selected="selected" {{end}}></option>
 	  <option {{ if eq .Data.RequestMethod `GET` }} selected="selected" {{end}}>GET</option>
 	  <option {{ if eq .Data.RequestMethod `POST` }} selected="selected" {{end}}>POST</option>
@@ -36,7 +36,7 @@
   </div>
   <div class="form-group">
     <label for="model-request_uri">Request URI</label>
-    <input type="text" class="form-control" value="{{.Data.RequestUri}}" id="model-request_uri" name="model[request_uri]" placeholder="Request URI">
+    <input type="text" class="form-control" value="{{.Data.RequestUri}}" id="model-request_uri" name="request_uri" placeholder="Request URI">
   </div>
   
 <div class="headers-group form-group">
@@ -60,7 +60,7 @@
 		<a class="decoder" href="#">expand JSON</a> | 
 		<a class="encoder" href="#">fold JSON</a>
 	</div>
-    <textarea type="text" class="form-control" id="model-request_body" name="model[request][body]" placeholder="Request Body">{{.Data.RequestParsed.Body}}</textarea>
+    <textarea type="text" class="form-control" id="model-request_body" name="request[body]" placeholder="Request Body">{{.Data.RequestParsed.Body}}</textarea>
 </div>
 </fieldset>
 
@@ -87,12 +87,12 @@
 		<a class="decoder" href="#">expand JSON</a> |  
 		<a class="encoder" href="#">fold JSON</a>
 	</div>
-    <textarea type="text" class="form-control" id="model-response_body" name="model[response][body]" placeholder="Response Body">{{.Data.ResponseParsed.Body}}</textarea>
+    <textarea type="text" class="form-control" id="model-response_body" name="response[body]" placeholder="Response Body">{{.Data.ResponseParsed.Body}}</textarea>
 </div>
 </fieldset>
 
 <div class="clearfix">
-	<button type="submit" class="btn btn-primary pull-right">Submit</button>
+	<button type="submit" class="btn btn-primary pull-right">Update</button>
 </div>
 </form>
 

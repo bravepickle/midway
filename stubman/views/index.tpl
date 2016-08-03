@@ -20,7 +20,7 @@
 		<td>{{.RequestUri}}</td>
 		<td>
 			<a href="edit/{{.Id}}" title="edit"><span class="glyphicon glyphicon-pencil" aria-hidden="true"></span></a>
-			<a href="#" data-href="delete/{{.Id}}" data-toggle="modal" data-target="#del-confirm" class="btn-del" title="delete"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></a>
+			<a href="#" data-href="/stubman/delete/{{.Id}}" data-toggle="modal" data-target="#del-confirm" class="btn-del" title="delete"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></a>
 		</td>
 	</tr>
 {{end}}
@@ -40,26 +40,19 @@
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-default" id="btn-del-cancel" data-dismiss="modal">Cancel</button>
-        <button type="button" class="btn btn-danger">Delete</button>
+        <button type="button" class="btn btn-danger" id="btn-del-confirm">Delete</button>
       </div>
     </div>
   </div>
 </div>
 
+{{ end }}
+
+{{ define "scripts" }}
+<script src="/stubman/static/js/index.js" crossorigin="anonymous"></script>
 <script type="text/javascript">
    $(document).ready(function() {
-		$('#btn-create').click(function() {
-			top.location.href = 'create'
-		});
-		$('.btn-del').click(function(el) {
-			console.log(this)
-			console.log(el)
-		});
-		
-		$('#del-confirm').on('shown.bs.modal', function () {
-  			$('#btn-del-cancel').focus()
-		})
- 		
+		initIndex();
    });
 </script>
 {{ end }}
