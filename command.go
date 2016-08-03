@@ -36,11 +36,15 @@ func parseAppInput(cfg string) bool {
 			}
 
 		case argDbInit:
-			db := stubman.NewDb(Config.Db.DbName, true)
-			if err := db.Reset(); err != nil {
+			db, err := stubman.NewDb(Config.Stubman.Db.DbName, true)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "Failed to init DB. Reason: %s\n", err.Error())
+			}
+
+			if err = db.Reset(); err != nil {
 				fmt.Fprintf(os.Stderr, "Failed to init DB. Reason: %s\n", err.Error())
 			} else {
-				fmt.Printf("DB \"%s\" was reset successfully.\n", Config.Db.DbName)
+				fmt.Printf("DB \"%s\" was reset successfully.\n", Config.Stubman.Db.DbName)
 			}
 
 		case argDbImport:
@@ -49,11 +53,15 @@ func parseAppInput(cfg string) bool {
 				return false
 			}
 
-			db := stubman.NewDb(Config.Db.DbName, true)
-			if err := db.ImportFromFile(flag.Arg(1)); err != nil {
+			db, err := stubman.NewDb(Config.Stubman.Db.DbName, true)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "Failed to init DB. Reason: %s\n", err.Error())
+			}
+
+			if err = db.ImportFromFile(flag.Arg(1)); err != nil {
 				fmt.Fprintf(os.Stderr, "Failed to import file \"%s\" to DB. Reason: %s\n", flag.Arg(1), err.Error())
 			} else {
-				fmt.Printf("File \"%s\" was successfully imported to %s.\n", flag.Arg(1), Config.Db.DbName)
+				fmt.Printf("File \"%s\" was successfully imported to %s.\n", flag.Arg(1), Config.Stubman.Db.DbName)
 			}
 
 		default:

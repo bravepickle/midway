@@ -20,7 +20,7 @@
 	  <li role="presentation" {{ if .CreatePage }}class="active"{{ end }}><a href="/stubman/create">New</a></li>
 	</ul>
     {{ template "content" . }}
-	<footer class="main-footer">
+	<footer class="main-footer navbar navbar-fixed-bottom">
 	Victor K&copy; 2016
 	</footer>
 	</div>

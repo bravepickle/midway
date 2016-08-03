@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"regexp"
 	"time"
 
 	//	"net/http/httptest"
@@ -71,9 +72,40 @@ func newFileLog(file *os.File) *log.Logger {
 	return log.New(file, "[CURL] ", 0)
 }
 
+func allowedToLogRequest(r *http.Request, body string) bool {
+	// don't log requests for stubman
+	if !Config.Stubman.Disabled {
+		rxCond := regexp.MustCompile(`^` + prefixPathStubman)
+		if rxCond.Match([]byte(r.URL.Path)) {
+			return false
+		}
+	}
+
+	if Config.Log.Request.Disabled {
+		return false
+	}
+
+	if Config.Log.Request.Conditions.Disabled {
+		return true
+	}
+
+	if Config.Log.Request.Conditions.Uri != `` {
+		rxCond := regexp.MustCompile(Config.Log.Request.Conditions.Uri)
+		if rxCond.Match([]byte(r.URL.Path)) {
+			//			log.Println(`-------------- Allowed string `, r.URL.Path)
+			return true
+		} else {
+			//			log.Println(`-------------- Denied string `, r.URL.Path)
+
+			return false
+		}
+	}
+
+	return true
+}
+
 func (l *CurlLogger) ServeHTTP(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 	start := time.Now()
-
 	//	nextRw := httptest.NewRecorder()
 
 	if Debug {
@@ -87,20 +119,23 @@ func (l *CurlLogger) ServeHTTP(rw http.ResponseWriter, r *http.Request, next htt
 		res := rw.(negroni.ResponseWriter)
 		l.Request.Printf("Completed %v %s in %v", res.Status(), http.StatusText(res.Status()), time.Since(start))
 
-		l.Request.Println(gencurl.FromRequestWithBody(r, body))
+		if allowedToLogRequest(r, body) {
+			l.Request.Println(gencurl.FromRequestWithBody(r, body))
+		}
+
 	} else {
 		body := gencurl.CopyBody(r)
 		next(rw, r)
 		//		next(nextRw, r)
-		l.Request.Printf(`[%s] %s`, start, gencurl.FromRequestWithBody(r, body))
+
+		if allowedToLogRequest(r, body) {
+			l.Request.Printf(`[%s] %s`, start, gencurl.FromRequestWithBody(r, body))
+		}
 	}
 
 	//	l.Response.Printf("STATUS CODE: %d\n", nextRw.Code)
 	//	l.Response.Printf("HEADERS: %s\n", nextRw.Header())
-
-	//	if r.Method != `GET` && r.Method != `HEAD` {
-	//		l.Response.Println(`BODY: `, nextRw.Body.String())
-	//	}
+	//	l.Response.Println(`BODY: `, nextRw.Body.String())
 
 	//	rw.Write([]byte(nextRw.Body.String()))
 

@@ -104,13 +104,16 @@ func (d *Db) ImportFromFile(path string) error {
 	return nil
 }
 
-func NewDb(dbname string, setAsDefault bool) *Db {
+func NewDb(dbname string, setAsDefault bool) (*Db, error) {
 	db := &Db{DbName: dbname}
-	db.Init()
+	err := db.Init()
+	if err != nil {
+		return db, err
+	}
 
 	if setAsDefault {
 		db.MakeDefault()
 	}
 
-	return db
+	return db, nil
 }

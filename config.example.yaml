@@ -10,10 +10,6 @@ proxy:
   host: localhost
   port: 80
 
-# DB settings
-db:
-  dbname: ./data.sqlite
-
 # Logging settings
 log:
   disabled: false
@@ -48,4 +44,10 @@ log:
   # if blank string then will use Stderr
   #error_log: ./error.log
   error_log: ""
+
+stubman:
+  disabled: false
+  # DB settings
+  db:
+    dbname: ./data.sqlite
   

@@ -11,14 +11,20 @@ import (
 
 // ConfigStruct struct contains main application config
 type ConfigStruct struct {
-	Proxy ProxyConfigStruct `yaml:"proxy,omitempty"`
-	App   AppConfigStruct   `yaml:"app,omitempty"`
-	Db    DbConfigStruct    `yaml:"db,omitempty"`
-	Log   LogConfigStruct   `yaml:"log,omitempty"`
+	Proxy   ProxyConfigStruct   `yaml:"proxy,omitempty"`
+	App     AppConfigStruct     `yaml:"app,omitempty"`
+	Log     LogConfigStruct     `yaml:"log,omitempty"`
+	Stubman StubmanConfigStruct `yaml:"stubman,omitempty"`
 }
 
 func (c *ConfigStruct) String() string {
-	return fmt.Sprintf(`{app: %s, proxy: %s, db: %s, log: %s}`, c.Proxy.String(), c.App.String(), c.Db.String(), c.Log.String())
+	return fmt.Sprintf(`{app: %s, proxy: %s, db: %s, log: %s}`, c.Proxy.String(), c.App.String(), c.Stubman.Db.String(), c.Log.String())
+}
+
+// StubmanConfigStruct contains Stubman settings
+type StubmanConfigStruct struct {
+	Disabled bool           `yaml:"disabled,omitempty"`
+	Db       DbConfigStruct `yaml:"db,omitempty"`
 }
 
 // DbConfigStruct contains DB connection details for Stubman

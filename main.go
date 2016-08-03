@@ -13,8 +13,8 @@ import (
 
 const defaultConfigPath = `./config.yaml`
 const argCfgInit = `config:init`
-const argDbInit = `db:init`
-const argDbImport = `db:import`
+const argDbInit = `stubman:db:init`
+const argDbImport = `stubman:db:import`
 const prefixPathStubman = `/stubman`
 
 var optHelp bool
@@ -90,13 +90,10 @@ func faviconHandler(w http.ResponseWriter, r *http.Request, ext string) {
 
 // init Stubman
 func initStubman(mux *http.ServeMux, n *negroni.Negroni) error {
-	db := stubman.NewDb(Config.Db.DbName, true)
-	err := db.Init()
+	_, err := stubman.NewDb(Config.Stubman.Db.DbName, true)
 	if err != nil {
 		return err
 	}
-
-	db.MakeDefault()
 
 	stubman.AddStubmanCrudHandlers(prefixPathStubman, mux)
 

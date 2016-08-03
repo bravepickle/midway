@@ -14,7 +14,7 @@ $ midway -help
 
 Web middleware app to log, proxy requests etc.
 
-Usage: ./midway [options] [arg]
+Usage: midway [options] [arg]
 
 Options:
   -debug
@@ -23,17 +23,19 @@ Options:
     	Path to config file in YAML format (default "./config.yaml")
   -help
     	Print command usage help
+  -httptest.serve string
+    	if non-empty, httptest.NewServer serves on this address and blocks
 
 Arguments:
   config:init
     	initialize example config for running application. If file exists, then it will be reset to defaults
-  db:init
+  stubman:db:init
     	initialize DB. If it exists, then DB will be reset
-  db:import <file.sql>
+  stubman:db:import <file.sql>
     	import data from SQL file to DB. Second argument must be present with file path
 
 Example:
-  ./midway config:init
+  midway config:init
 
 ```
 

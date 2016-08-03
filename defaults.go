@@ -14,10 +14,6 @@ proxy:
   host: localhost
   port: 80
 
-# DB settings
-db:
-  dbname: ./data.sqlite
-
 # Logging settings
 log:
   disabled: false
@@ -26,7 +22,8 @@ log:
   response:
     disabled: false
     # if blank string then will use Stdout
-    output: ./response.log 
+    #output: ./response.log 
+    output: ""
     
     # RegEx strings that specify conditions when response should be logged. If contain empty string then allow all. 
     # Filters use AND as glue between conditionals
@@ -39,7 +36,8 @@ log:
   # logging request
   request:
     disabled: false
-    output: ./request.log
+    #output: ./request.log
+    output: ""
     conditions:
       disabled: true # disable conditions check
       uri: ""
@@ -48,5 +46,12 @@ log:
       body: ""
   
   # if blank string then will use Stderr
-  error_log: ./error.log
+  #error_log: ./error.log
+  error_log: ""
+
+stubman:
+  disabled: false
+  # DB settings
+  db:
+    dbname: ./data.sqlite
 `
