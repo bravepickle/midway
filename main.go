@@ -57,7 +57,13 @@ func main() {
 		return
 	}
 
-	//	return
+	//favicon
+	mux.HandleFunc("/favicon.ico", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, `favicon.ico`)
+	})
+	mux.HandleFunc("/favicon.png", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, `favicon.png`)
+	})
 
 	// handle the rest of URIs
 	mux.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
@@ -76,6 +82,10 @@ func main() {
 	}
 
 	http.ListenAndServe(Config.App.String(), n)
+}
+
+func faviconHandler(w http.ResponseWriter, r *http.Request, ext string) {
+	http.ServeFile(w, r, `favicon.`+ext)
 }
 
 // init Stubman
