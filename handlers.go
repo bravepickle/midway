@@ -73,14 +73,6 @@ func newFileLog(file *os.File) *log.Logger {
 }
 
 func allowedToLogRequest(r *http.Request, body string) bool {
-	// don't log requests for stubman
-	if !Config.Stubman.Disabled {
-		rxCond := regexp.MustCompile(`^` + prefixPathStubman)
-		if rxCond.Match([]byte(r.URL.Path)) {
-			return false
-		}
-	}
-
 	if Config.Log.Request.Disabled {
 		return false
 	}

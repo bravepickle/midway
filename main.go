@@ -4,18 +4,11 @@ import (
 	"flag"
 	"fmt"
 	"net/http"
-	"os"
 	"time"
-
-	"github.com/bravepickle/midway/stubman"
-	"github.com/urfave/negroni"
 )
 
 const defaultConfigPath = `./config.yaml`
 const argCfgInit = `config:init`
-const argDbInit = `stubman:db:init`
-const argDbImport = `stubman:db:import`
-const prefixPathStubman = `/stubman`
 
 var optHelp bool
 var cfgPath string
@@ -51,12 +44,6 @@ func main() {
 	mux := http.NewServeMux()
 	n := Gateway() // Includes some default middlewares
 
-	err := initStubman(mux, n)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err.Error())
-		return
-	}
-
 	//favicon
 	mux.HandleFunc("/favicon.ico", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, `favicon.ico`)
@@ -82,27 +69,4 @@ func main() {
 	}
 
 	http.ListenAndServe(Config.App.String(), n)
-}
-
-func faviconHandler(w http.ResponseWriter, r *http.Request, ext string) {
-	http.ServeFile(w, r, `favicon.`+ext)
-}
-
-// init Stubman
-func initStubman(mux *http.ServeMux, n *negroni.Negroni) error {
-	_, err := stubman.NewDb(Config.Stubman.Db.DbName, true)
-	if err != nil {
-		return err
-	}
-
-	stubman.AddStubmanCrudHandlers(prefixPathStubman, mux)
-
-	// forward all static files to directory
-	n.Use(negroni.NewStatic(http.Dir(``)))
-
-	if Debug {
-		fmt.Printf("Stubman path: http://%s%s/\n", Config.App.String(), prefixPathStubman)
-	}
-
-	return nil
 }

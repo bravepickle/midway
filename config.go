@@ -11,30 +11,13 @@ import (
 
 // ConfigStruct struct contains main application config
 type ConfigStruct struct {
-	Proxy   ProxyConfigStruct   `yaml:"proxy,omitempty"`
-	App     AppConfigStruct     `yaml:"app,omitempty"`
-	Log     LogConfigStruct     `yaml:"log,omitempty"`
-	Stubman StubmanConfigStruct `yaml:"stubman,omitempty"`
+	Proxy ProxyConfigStruct `yaml:"proxy,omitempty"`
+	App   AppConfigStruct   `yaml:"app,omitempty"`
+	Log   LogConfigStruct   `yaml:"log,omitempty"`
 }
 
 func (c *ConfigStruct) String() string {
-	return fmt.Sprintf(`{app: %s, proxy: %s, db: %s, log: %s}`, c.Proxy.String(), c.App.String(), c.Stubman.Db.String(), c.Log.String())
-}
-
-// StubmanConfigStruct contains Stubman settings
-type StubmanConfigStruct struct {
-	Disabled bool           `yaml:"disabled,omitempty"`
-	Db       DbConfigStruct `yaml:"db,omitempty"`
-}
-
-// DbConfigStruct contains DB connection details for Stubman
-type DbConfigStruct struct {
-	DbName string `yaml:"dbname,omitempty"`
-}
-
-// HostPortString generates string scheme://host:port
-func (t *DbConfigStruct) String() string {
-	return fmt.Sprintf(`sqlite3://%s`, t.DbName)
+	return fmt.Sprintf(`{app: %s, proxy: %s, log: %s}`, c.Proxy.String(), c.App.String(), c.Log.String())
 }
 
 // ProxyConfigStruct struct contains reverse proxy configuration
@@ -86,7 +69,7 @@ type ResponseLogCondConfigStruct struct {
 	Body     string `yaml:"body,omitempty"`
 }
 
-// LogConfigStruct contains DB connection details for Stubman
+// LogConfigStruct contains DB connection details
 type LogConfigStruct struct {
 	Disabled bool                    `yaml:"disabled,omitempty"`
 	Request  RequestLogConfigStruct  `yaml:"request,omitempty"`

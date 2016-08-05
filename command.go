@@ -5,8 +5,6 @@ import (
 	"flag"
 	"fmt"
 	"os"
-
-	"github.com/bravepickle/midway/stubman"
 )
 
 func printAppUsage() {
@@ -18,8 +16,6 @@ func printAppUsage() {
 
 	fmt.Fprintf(os.Stderr, "\nArguments:\n")
 	fmt.Fprintf(os.Stderr, "  %s\n    	initialize example config for running application. If file exists, then it will be reset to defaults\n", argCfgInit)
-	fmt.Fprintf(os.Stderr, "  %s\n    	initialize DB. If it exists, then DB will be reset\n", argDbInit)
-	fmt.Fprintf(os.Stderr, "  %s <file.sql>\n    	import data from SQL file to DB. Second argument must be present with file path\n", argDbImport)
 	fmt.Fprintf(os.Stderr, "\nExample:\n  %s %s \n\n", os.Args[0], argCfgInit)
 }
 
@@ -33,35 +29,6 @@ func parseAppInput(cfg string) bool {
 				fmt.Fprintf(os.Stderr, "Failed to init file \"%s\". Reason: %s\n", cfg, err.Error())
 			} else {
 				fmt.Printf("File \"%s\" was initialized successfully. Customize it and run application\n", cfg)
-			}
-
-		case argDbInit:
-			db, err := stubman.NewDb(Config.Stubman.Db.DbName, true)
-			if err != nil {
-				fmt.Fprintf(os.Stderr, "Failed to init DB. Reason: %s\n", err.Error())
-			}
-
-			if err = db.Reset(); err != nil {
-				fmt.Fprintf(os.Stderr, "Failed to init DB. Reason: %s\n", err.Error())
-			} else {
-				fmt.Printf("DB \"%s\" was reset successfully.\n", Config.Stubman.Db.DbName)
-			}
-
-		case argDbImport:
-			if flag.NArg() < 2 {
-				fmt.Fprintln(os.Stderr, `Missing second argument with file path to import`)
-				return false
-			}
-
-			db, err := stubman.NewDb(Config.Stubman.Db.DbName, true)
-			if err != nil {
-				fmt.Fprintf(os.Stderr, "Failed to init DB. Reason: %s\n", err.Error())
-			}
-
-			if err = db.ImportFromFile(flag.Arg(1)); err != nil {
-				fmt.Fprintf(os.Stderr, "Failed to import file \"%s\" to DB. Reason: %s\n", flag.Arg(1), err.Error())
-			} else {
-				fmt.Printf("File \"%s\" was successfully imported to %s.\n", flag.Arg(1), Config.Stubman.Db.DbName)
 			}
 
 		default:

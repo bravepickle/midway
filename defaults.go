@@ -49,9 +49,4 @@ log:
   #error_log: ./error.log
   error_log: ""
 
-stubman:
-  disabled: false
-  # DB settings
-  db:
-    dbname: ./data.sqlite
 `
