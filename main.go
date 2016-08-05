@@ -44,12 +44,9 @@ func main() {
 	mux := http.NewServeMux()
 	n := Gateway() // Includes some default middlewares
 
-	//favicon
+	// favicon
 	mux.HandleFunc("/favicon.ico", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, `favicon.ico`)
-	})
-	mux.HandleFunc("/favicon.png", func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, `favicon.png`)
 	})
 
 	// handle the rest of URIs

@@ -2,6 +2,7 @@
 package main
 
 import (
+	"bytes"
 	"log"
 	"net/http"
 	"os"
@@ -83,12 +84,28 @@ func allowedToLogRequest(r *http.Request, body string) bool {
 
 	if Config.Log.Request.Conditions.Uri != `` {
 		rxCond := regexp.MustCompile(Config.Log.Request.Conditions.Uri)
-		if rxCond.Match([]byte(r.URL.Path)) {
-			//			log.Println(`-------------- Allowed string `, r.URL.Path)
-			return true
-		} else {
-			//			log.Println(`-------------- Denied string `, r.URL.Path)
+		if !rxCond.Match([]byte(r.RequestURI)) {
+			return false
+		}
+	}
 
+	if Config.Log.Request.Conditions.Method != `` {
+		rxCond := regexp.MustCompile(Config.Log.Request.Conditions.Method)
+		if !rxCond.Match([]byte(r.Method)) {
+			return false
+		}
+	}
+
+	if Config.Log.Request.Conditions.Header != `` {
+		rxCond := regexp.MustCompile(Config.Log.Request.Conditions.Header)
+		if !containsHeader(r.Header, rxCond) {
+			return false
+		}
+	}
+
+	if Config.Log.Request.Conditions.Body != `` {
+		rxCond := regexp.MustCompile(Config.Log.Request.Conditions.Body)
+		if !rxCond.Match([]byte(body)) {
 			return false
 		}
 	}
@@ -96,20 +113,36 @@ func allowedToLogRequest(r *http.Request, body string) bool {
 	return true
 }
 
+// containsHeader check if header exists
+func containsHeader(headers http.Header, rxCond *regexp.Regexp) bool {
+	for vKey, vVals := range headers {
+		prefix := bytes.NewBufferString(vKey)
+		prefix.WriteString(`: `)
+
+		for _, v := range vVals {
+			h := bytes.NewBuffer(prefix.Bytes())
+			h.WriteString(v)
+
+			if rxCond.Match(h.Bytes()) {
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
 func (l *CurlLogger) ServeHTTP(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 	start := time.Now()
-	//	nextRw := httptest.NewRecorder()
-
 	if Debug {
 		l.Request.Println(`-----`)
 		l.Request.Printf("[%s] Started %s %s", start, r.Method, r.URL.Path)
 
 		body := gencurl.CopyBody(r)
 		next(rw, r)
-		//		next(nextRw, r)
 
 		res := rw.(negroni.ResponseWriter)
-		l.Request.Printf("Completed %v %s in %v", res.Status(), http.StatusText(res.Status()), time.Since(start))
+		l.Request.Printf("Completed %v %s in %v\n", res.Status(), http.StatusText(res.Status()), time.Since(start))
 
 		if allowedToLogRequest(r, body) {
 			l.Request.Println(gencurl.FromRequestWithBody(r, body))
@@ -118,77 +151,18 @@ func (l *CurlLogger) ServeHTTP(rw http.ResponseWriter, r *http.Request, next htt
 	} else {
 		body := gencurl.CopyBody(r)
 		next(rw, r)
-		//		next(nextRw, r)
 
 		if allowedToLogRequest(r, body) {
 			l.Request.Printf(`[%s] %s`, start, gencurl.FromRequestWithBody(r, body))
 		}
 	}
-
-	//	l.Response.Printf("STATUS CODE: %d\n", nextRw.Code)
-	//	l.Response.Printf("HEADERS: %s\n", nextRw.Header())
-	//	l.Response.Println(`BODY: `, nextRw.Body.String())
-
-	//	rw.Write([]byte(nextRw.Body.String()))
-
-	//	for k, vals := range nextRw.Header() {
-	//		for _, v := range vals {
-	//			rw.Header().Add(k, v)
-	//		}
-	//	}
-
-	//	nextRw.Header().Set(`X-TRY`, `true`)
-	//	nextRw.Header().Add(`X-TRY2`, `true`)
-
-	//	rw.Header().Set(`X-TRY`, `true`)
-	//	rw.Header().Add(`X-TRY2`, `true`)
-
-	//	rw.WriteHeader(nextRw.Code)
-
-	//	nextRw.Flush()
 }
-
-//func (l *CurlLogger) ServeHTTP(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
-//	if Config.Log.Response.Disabled {
-//		l.serveHTTPBase(rw, r, next)
-//	} else {
-//		l.serveHTTPResponse(rw, r, next)
-//	}
-
-//}
-
-//// serveHTTPResponse serves response and writes response to logs
-//func (l *CurlLogger) serveHTTPResponse(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
-//	start := time.Now()
-//	nextRw := httptest.NewRecorder()
-
-//	if Debug {
-//		l.Request.Println(`-----`)
-//		l.Request.Printf("[%s] Started %s %s", start, r.Method, r.URL.Path)
-
-//		body := gencurl.CopyBody(r)
-//		next(*nextRw, r)
-
-//		res := rw.(negroni.ResponseWriter)
-//		l.Request.Printf("Completed %v %s in %v", res.Status(), http.StatusText(res.Status()), time.Since(start))
-
-//		l.Request.Println(gencurl.FromRequestWithBody(r, body))
-//	} else {
-//		body := gencurl.CopyBody(r)
-//		next(*nextRw, r)
-//		l.Request.Printf(`[%s] %s`, start, gencurl.FromRequestWithBody(r, body))
-//	}
-
-//	// TODO: add condition checkers
-//	l.Response.Printf(`Status: %d Body: %s`, *nextRw.Code, *nextRw.Body.String())
-//}
 
 // Classic returns a new Negroni instance with the default middleware already
 // in the stack.
 //
 // Recovery - Panic Recovery Middleware
 // Logger - Request/Response Logging in CURL format
-// Static - Static File Serving
 func Gateway() *negroni.Negroni {
 	return negroni.New(negroni.NewRecovery(), NewLogger())
 }

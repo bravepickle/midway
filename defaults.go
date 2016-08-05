@@ -7,12 +7,12 @@ app:
   host: null # any host will be checked
   port: 3000 # port to listen to
 
-# proxy server to proxy to requests in gateway mode
+# reverse proxy server to send requests in gateway mode
 proxy:
   disabled: true
   scheme: http
   host: localhost
-  port: 80
+  port: 3001
 
 # Logging settings
 log:

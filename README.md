@@ -58,4 +58,5 @@ Default URL: http://localhost:3000
 - add multiplexer hendler: send copy of request to another address asynchoneously, without waiting for response (use goroutines?). Test it output
 - add to config optional preconditions to start logging requests and responses, using RegEx
 - log time taken for handling requests
+- init RegEx expressions once and compile them with reuse
 
