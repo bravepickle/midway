@@ -159,7 +159,7 @@ func (l *CurlLogger) ServeHTTP(rw http.ResponseWriter, r *http.Request, next htt
 		next(rw, r)
 
 		if allowedToLogRequest(r, body) {
-			l.Request.Printf(`[%d][%s] %s`, idNum, start, gencurl.FromRequestWithBody(r, body))
+			l.Request.Printf("[%d][%s] %s\n", idNum, start, gencurl.FromRequestWithBody(r, body))
 		}
 
 		// TODO: add response status, headers, body in plain format in log
