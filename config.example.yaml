@@ -35,11 +35,11 @@ log:
     #output: ./request.log
     output: ""
     conditions:
-      disabled: false # disable conditions check
+      disabled: true # disable conditions check
       uri: ""
       header: ""
-      method: "(GET|POST)"
-      body: "new"
+      method: ""
+      body: ""
   
   # if blank string then will use Stderr
   #error_log: ./error.log
