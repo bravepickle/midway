@@ -115,6 +115,47 @@ func allowedToLogRequest(r *http.Request, body string) bool {
 	return true
 }
 
+func allowedToLogResponse(rw http.ResponseWriter, body string) bool {
+	if Config.Log.Response.Disabled {
+		return false
+	}
+
+	// TODO: implement this
+	//	if Config.Log.Response.Conditions.Disabled {
+	//		return true
+	//	}
+
+	//	if Config.Log.Response.Conditions.Uri != `` {
+	//		rxCond := regexp.MustCompile(Config.Log.Response.Conditions.Uri)
+	//		if !rxCond.Match([]byte(r.RequestURI)) {
+	//			return false
+	//		}
+	//	}
+
+	//	if Config.Log.Response.Conditions.Method != `` {
+	//		rxCond := regexp.MustCompile(Config.Log.Response.Conditions.Method)
+	//		if !rxCond.Match([]byte(r.Method)) {
+	//			return false
+	//		}
+	//	}
+
+	//	if Config.Log.Response.Conditions.Header != `` {
+	//		rxCond := regexp.MustCompile(Config.Log.Response.Conditions.Header)
+	//		if !containsHeader(r.Header, rxCond) {
+	//			return false
+	//		}
+	//	}
+
+	//	if Config.Log.Response.Conditions.Body != `` {
+	//		rxCond := regexp.MustCompile(Config.Log.Response.Conditions.Body)
+	//		if !rxCond.Match([]byte(body)) {
+	//			return false
+	//		}
+	//	}
+
+	return true
+}
+
 // containsHeader check if header exists
 func containsHeader(headers http.Header, rxCond *regexp.Regexp) bool {
 	for vKey, vVals := range headers {
@@ -152,6 +193,12 @@ func (l *CurlLogger) ServeHTTP(rw http.ResponseWriter, r *http.Request, next htt
 			l.Request.Printf("[%d] %s\n", idNum, gencurl.FromRequestWithBody(r, body))
 		}
 
+		// TODO: response body can be copied properly without losing send to end user
+		if allowedToLogResponse(rw, ``) {
+			// TODO: status code, headers, body goes here
+			l.Response.Printf("[%d] Response\n%s\n\n", idNum, `TODO: status code, headers, body goes here`)
+		}
+
 		// TODO: add response status, headers, body in plain format in log
 
 	} else {
@@ -160,6 +207,12 @@ func (l *CurlLogger) ServeHTTP(rw http.ResponseWriter, r *http.Request, next htt
 
 		if allowedToLogRequest(r, body) {
 			l.Request.Printf("[%d][%s] %s\n", idNum, start, gencurl.FromRequestWithBody(r, body))
+		}
+
+		// TODO: response body can be copied properly without losing send to end user
+		if allowedToLogResponse(rw, ``) {
+			// TODO: status code, headers, body goes here
+			l.Response.Printf("[%d] Response\n%s\n\n", idNum, `TODO: status code, headers, body goes here`)
 		}
 
 		// TODO: add response status, headers, body in plain format in log
