@@ -3,17 +3,20 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"regexp"
+	"sync/atomic"
 	"time"
-
 	//	"net/http/httptest"
 
 	"github.com/bravepickle/gencurl"
 	"github.com/urfave/negroni"
 )
+
+var idLogNum uint64
 
 // Logger is a middleware handler that logs the request as it goes in and the response as it goes out.
 type CurlLogger struct {
@@ -70,7 +73,7 @@ func NewLogger() *CurlLogger {
 }
 
 func newFileLog(file *os.File) *log.Logger {
-	return log.New(file, "[CURL] ", 0)
+	return log.New(file, `[CURL] `, 0)
 }
 
 func allowedToLogRequest(r *http.Request, body string) bool {
@@ -134,27 +137,35 @@ func containsHeader(headers http.Header, rxCond *regexp.Regexp) bool {
 
 func (l *CurlLogger) ServeHTTP(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 	start := time.Now()
+	idNum := atomic.AddUint64(&idLogNum, 1)
+
 	if Debug {
-		l.Request.Println(`-----`)
-		l.Request.Printf("[%s] Started %s %s", start, r.Method, r.URL.Path)
+		//		l.Request.Println(`-----`)
+		l.Request.Printf("[%d][%s] Started %s %s", idNum, start, r.Method, r.URL.Path)
 
 		body := gencurl.CopyBody(r)
 		next(rw, r)
 
 		res := rw.(negroni.ResponseWriter)
-		l.Request.Printf("Completed %v %s in %v\n", res.Status(), http.StatusText(res.Status()), time.Since(start))
+		l.Request.Printf("[%d] Completed %v %s in %v\n", idNum, res.Status(), http.StatusText(res.Status()), time.Since(start))
 
 		if allowedToLogRequest(r, body) {
-			l.Request.Println(gencurl.FromRequestWithBody(r, body))
+			prefix := fmt.Sprintf(`[%d] `, idNum)
+			l.Request.Println(gencurl.FromRequestWithBody(r, body, prefix))
 		}
+
+		// TODO: add response status, headers, body in plain format in log
 
 	} else {
 		body := gencurl.CopyBody(r)
 		next(rw, r)
 
 		if allowedToLogRequest(r, body) {
-			l.Request.Printf(`[%s] %s`, start, gencurl.FromRequestWithBody(r, body))
+			prefix := fmt.Sprintf(`[%d] `, idNum)
+			l.Request.Printf(`[%d][%s] %s`, idLogNum, start, gencurl.FromRequestWithBody(r, body, prefix))
 		}
+
+		// TODO: add response status, headers, body in plain format in log
 	}
 }
 
