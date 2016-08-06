@@ -3,7 +3,6 @@ package main
 
 import (
 	"bytes"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -150,8 +149,7 @@ func (l *CurlLogger) ServeHTTP(rw http.ResponseWriter, r *http.Request, next htt
 		l.Request.Printf("[%d] Completed %v %s in %v\n", idNum, res.Status(), http.StatusText(res.Status()), time.Since(start))
 
 		if allowedToLogRequest(r, body) {
-			prefix := fmt.Sprintf(`[%d] `, idNum)
-			l.Request.Println(gencurl.FromRequestWithBody(r, body, prefix))
+			l.Request.Printf("[%d] %s\n", idNum, gencurl.FromRequestWithBody(r, body))
 		}
 
 		// TODO: add response status, headers, body in plain format in log
@@ -161,8 +159,7 @@ func (l *CurlLogger) ServeHTTP(rw http.ResponseWriter, r *http.Request, next htt
 		next(rw, r)
 
 		if allowedToLogRequest(r, body) {
-			prefix := fmt.Sprintf(`[%d] `, idNum)
-			l.Request.Printf(`[%d][%s] %s`, idLogNum, start, gencurl.FromRequestWithBody(r, body, prefix))
+			l.Request.Printf(`[%d][%s] %s`, idNum, start, gencurl.FromRequestWithBody(r, body))
 		}
 
 		// TODO: add response status, headers, body in plain format in log
