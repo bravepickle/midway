@@ -9,21 +9,22 @@ app:
 
 # reverse proxy server to send requests in gateway mode
 proxy:
-  disabled: true
-  scheme: http
-  host: localhost
-  port: 3001
+  disabled: true  # disable reverse proxy, will return default text otherwise
+  scheme: http    # http/https schema for target proxy host
+  host: localhost # target host
+  port: 3001    # target port
 
 # Logging settings
 log:
-  disabled: false
+  disabled: false # disable logging
   
   # logging response
   response:
-    disabled: false
+    disabled: false # disable response logging
     # if blank string then will use Stdout
-    #output: ./response.log 
-    output: ""
+    #output: ./response.log # output results to file
+    output: "" # output to stdout
+    truncate: false # truncate file for output on start
     
     # RegEx strings that specify conditions when response should be logged. If contain empty string then allow all. 
     # Filters use AND as glue between conditionals
@@ -35,9 +36,11 @@ log:
     
   # logging request
   request:
-    disabled: false
-    #output: ./request.log
-    output: ""
+    disabled: false # disable request logging
+    #output: ./request.log # output results to file
+    output: "" # output to stdout
+    truncate: false # truncate file for output on start
+            
     conditions:
       disabled: true # disable conditions check
       uri: ""
@@ -46,7 +49,7 @@ log:
       body: ""
   
   # if blank string then will use Stderr
-  #error_log: ./error.log
-  error_log: ""
+  error_log: ./error.log
+  #error_log: ""
 
 `

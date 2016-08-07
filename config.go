@@ -46,6 +46,7 @@ type RequestLogConfigStruct struct {
 	Disabled   bool                       `yaml:"disabled,omitempty"`
 	Output     string                     `yaml:"output,omitempty"`
 	Conditions RequestLogCondConfigStruct `yaml:"conditions,omitempty"`
+	Truncate   bool                       `yaml:"truncate,omitempty"`
 }
 
 type RequestLogCondConfigStruct struct {
@@ -60,6 +61,7 @@ type ResponseLogConfigStruct struct {
 	Disabled   bool                       `yaml:"disabled,omitempty"`
 	Output     string                     `yaml:"output,omitempty"`
 	Conditions RequestLogCondConfigStruct `yaml:"conditions,omitempty"`
+	Truncate   bool                       `yaml:"truncate,omitempty"`
 }
 
 type ResponseLogCondConfigStruct struct {

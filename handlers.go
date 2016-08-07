@@ -9,7 +9,6 @@ import (
 	"regexp"
 	"sync/atomic"
 	"time"
-	//	"net/http/httptest"
 
 	"github.com/bravepickle/gencurl"
 	"github.com/urfave/negroni"
@@ -31,17 +30,11 @@ func NewLogger() *CurlLogger {
 	}
 
 	l := &CurlLogger{}
-
 	if !Config.Log.Request.Disabled {
 		if Config.Log.Request.Output == `` {
 			l.Request = newFileLog(os.Stdout)
 		} else {
-			f, err := os.OpenFile(Config.Log.Request.Output, os.O_APPEND|os.O_WRONLY|os.O_EXCL, 0664)
-			if err != nil {
-				log.Fatalln(err)
-			}
-
-			l.Request = newFileLog(f)
+			l.Request = newFileLog(openOrCreateFile(Config.Log.Request.Output, Config.Log.Request.Truncate))
 		}
 	}
 
@@ -49,26 +42,48 @@ func NewLogger() *CurlLogger {
 		if Config.Log.Response.Output == `` {
 			l.Response = newFileLog(os.Stdout)
 		} else {
-			f, err := os.OpenFile(Config.Log.Response.Output, os.O_APPEND|os.O_WRONLY|os.O_EXCL, 0664)
-			if err != nil {
-				log.Fatalln(err)
-			}
-
-			l.Response = newFileLog(f)
+			l.Response = newFileLog(openOrCreateFile(Config.Log.Response.Output, Config.Log.Response.Truncate))
 		}
 	}
 
 	if Config.Log.ErrorLog == `` {
 		l.Error = newFileLog(os.Stderr)
 	} else {
-		f, err := os.OpenFile(Config.Log.ErrorLog, os.O_APPEND|os.O_WRONLY|os.O_EXCL, 0664)
-		if err != nil {
-			log.Fatalln(err)
-		}
-		l.Error = newFileLog(f)
+		file := openOrCreateFile(Config.Log.ErrorLog, false)
+		l.Error = newFileLog(file)
+		log.SetOutput(file) // reset default logger
 	}
 
 	return l
+}
+
+// openOrCreateFile Open existing file or create new and return pointer
+func openOrCreateFile(path string, truncate bool) (f *os.File) {
+	var err error
+	if _, err = os.Stat(path); err != nil {
+		if os.IsNotExist(err) {
+			f, err = os.Create(path)
+			if err != nil {
+				log.Fatalln(err)
+			}
+		} else {
+			log.Fatalln(err)
+		}
+	} else {
+		f, err = os.OpenFile(path, os.O_APPEND|os.O_WRONLY|os.O_EXCL, 0664)
+		if err != nil {
+			log.Fatalln(err)
+		}
+
+		if truncate {
+			err = os.Truncate(path, 0)
+			if err != nil {
+				log.Fatalln(err)
+			}
+		}
+	}
+
+	return f
 }
 
 func newFileLog(file *os.File) *log.Logger {
@@ -180,7 +195,6 @@ func (l *CurlLogger) ServeHTTP(rw http.ResponseWriter, r *http.Request, next htt
 	idNum := atomic.AddUint64(&idLogNum, 1)
 
 	if Debug {
-		//		l.Request.Println(`-----`)
 		l.Request.Printf("[%d][%s] Started %s %s", idNum, start, r.Method, r.URL.Path)
 
 		body := gencurl.CopyBody(r)

@@ -3,8 +3,11 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
 	"net/http"
 	"time"
+
+	"github.com/urfave/negroni"
 )
 
 const defaultConfigPath = `./config.yaml`
@@ -44,6 +47,13 @@ func main() {
 	mux := http.NewServeMux()
 	n := Gateway() // Includes some default middlewares
 
+	initRouting(mux, n)
+
+	fmt.Printf("Listening to: %s\n", Config.App.String())
+	log.Fatal(http.ListenAndServe(Config.App.String(), n))
+}
+
+func initRouting(mux *http.ServeMux, n *negroni.Negroni) {
 	// favicon
 	mux.HandleFunc("/favicon.ico", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, `favicon.ico`)
@@ -60,10 +70,4 @@ func main() {
 	})
 
 	n.UseHandler(mux)
-
-	if Debug {
-		fmt.Printf("Listening to: %s\n", Config.App.String())
-	}
-
-	http.ListenAndServe(Config.App.String(), n)
 }
