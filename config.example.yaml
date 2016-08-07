@@ -16,7 +16,7 @@ log:
   
   # logging response
   response:
-    disabled: false # disable response logging
+    disabled: true # disable response logging
     # if blank string then will use Stdout
     #output: ./response.log # output results to file
     output: "" # output to stdout
@@ -33,8 +33,8 @@ log:
   # logging request
   request:
     disabled: false # disable request logging
-    #output: ./request.log # output results to file
-    output: "" # output to stdout
+    output: ./request.log # output results to file
+    #output: "" # output to stdout
     truncate: false # truncate file for output on start
             
     conditions:

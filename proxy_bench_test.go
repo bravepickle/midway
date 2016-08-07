@@ -14,7 +14,7 @@ func BenchmarkServerWriteToFiles(t *testing.B) {
 	Config.Proxy.Disabled = true
 	//	Config.Log.Request.Output = `./test_request.log`
 	//	Config.Log.Response.Output = `./test_response.log`
-	//	Config.Log.ErrorLog = `./test_error.log`
+	Config.Log.ErrorLog = `./test_error.log`
 
 	Config.Log.Request.Disabled = false
 	Config.Log.Request.Truncate = true
@@ -36,7 +36,6 @@ func BenchmarkServerWriteToFiles(t *testing.B) {
 	t.ResetTimer()
 
 	for i := 0; i < t.N; i++ {
-		//	for i := 0; i < 10; i++ {
 		benchServerDisabledProxy(t, srv)
 	}
 }
@@ -65,17 +64,17 @@ func benchServerDisabledProxy(t *testing.B, srv *httptest.Server) {
 		//		t.Log(uri)
 		resp, err := http.Get(uri)
 		if err != nil {
-			t.Error("\t\tFailed to read", uri, `:`, err)
+			t.Fatal("\t\tFailed to read", uri, `:`, err)
 		}
 
 		contentType := resp.Header.Get(`Content-Type`)
 		if contentType != data.contentType {
-			t.Errorf("\t\tFailed to assert MIME types. Expecting: \"%s\", received: \"%s\"",
+			t.Fatalf("\t\tFailed to assert MIME types. Expecting: \"%s\", received: \"%s\"",
 				data.contentType, contentType)
 		}
 
 		if resp.StatusCode != data.code {
-			t.Errorf("\t\tFailed to assert response status code. Expecting: %d, received: %d",
+			t.Fatalf("\t\tFailed to assert response status code. Expecting: %d, received: %d",
 				data.code, resp.StatusCode)
 		}
 	}

@@ -70,7 +70,8 @@ func openOrCreateFile(path string, truncate bool) (f *os.File) {
 			log.Fatalln(err)
 		}
 	} else {
-		f, err = os.OpenFile(path, os.O_APPEND|os.O_WRONLY|os.O_EXCL, 0664)
+		//		f, err = os.OpenFile(path, os.O_APPEND|os.O_WRONLY|os.O_EXCL, 0664)
+		f, err = os.OpenFile(path, os.O_APPEND|os.O_WRONLY, 0664)
 		if err != nil {
 			log.Fatalln(err)
 		}
@@ -195,15 +196,19 @@ func (l *CurlLogger) ServeHTTP(rw http.ResponseWriter, r *http.Request, next htt
 	idNum := atomic.AddUint64(&idLogNum, 1)
 
 	if Debug {
-		l.Request.Printf("[%d][%s] Started %s %s", idNum, start, r.Method, r.URL.Path)
-
 		body := gencurl.CopyBody(r)
+		logRequest := allowedToLogRequest(r, body)
+
+		if logRequest {
+			l.Request.Printf("[%d][%s] Started %s %s", idNum, start, r.Method, r.URL.Path)
+		}
+
 		next(rw, r)
 
 		res := rw.(negroni.ResponseWriter)
-		l.Request.Printf("[%d] Completed %v %s in %v\n", idNum, res.Status(), http.StatusText(res.Status()), time.Since(start))
 
-		if allowedToLogRequest(r, body) {
+		if logRequest {
+			l.Request.Printf("[%d] Completed %v %s in %v\n", idNum, res.Status(), http.StatusText(res.Status()), time.Since(start))
 			l.Request.Printf("[%d] %s\n", idNum, gencurl.FromRequestWithBody(r, body))
 		}
 
