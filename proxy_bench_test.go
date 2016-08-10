@@ -12,9 +12,9 @@ func BenchmarkServerWriteToFiles(t *testing.B) {
 	t.Log(`>> Test running Server defaults with disabled Reverse Proxy`)
 	t.Log(`Proxy: DISABLED`)
 	Config.Proxy.Disabled = true
-	//	Config.Log.Request.Output = `./test_request.log`
-	//	Config.Log.Response.Output = `./test_response.log`
-	//	Config.Log.Error.Output = `./test_error.log`
+	Config.Log.Request.Output = `./test_request.log`
+	Config.Log.Response.Output = `./test_response.log`
+	Config.Log.Error.Output = `./test_error.log`
 
 	Config.Log.Request.Disabled = false
 	Config.Log.Request.Truncate = true
