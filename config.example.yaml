@@ -29,7 +29,7 @@ log:
       request: # request check for response return
         disabled: false
         uri: "\\.php(\\?|$)"
-        method: ""
+        method: "GET"
         header: ""
         body: ""
       header: ""

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	_ "net/http/pprof"
 	"time"
 
 	"github.com/urfave/negroni"
@@ -16,12 +17,14 @@ const argCfgInit = `config:init`
 var optHelp bool
 var cfgPath string
 var Debug bool
+var ProfileHost string
 var Config ConfigStruct
 
 func init() {
 	flag.BoolVar(&Debug, `debug`, false, `Enable debug mode`)
 	flag.BoolVar(&optHelp, `help`, false, `Print command usage help`)
 	flag.StringVar(&cfgPath, `f`, defaultConfigPath, `Path to config file in YAML format`)
+	flag.StringVar(&ProfileHost, `prof`, `localhost:6060`, `Host:port for profiling. Available only for debug mode`)
 }
 
 func main() {
@@ -42,6 +45,11 @@ func main() {
 
 	if Debug {
 		fmt.Println(`Debug enabled`)
+
+		go func() {
+			fmt.Printf("Profiling enabled at: http://%s/debug/pprof/Warning! Under high load should be handled carefully, memory leaks possible\n", ProfileHost)
+			log.Fatal(http.ListenAndServe(ProfileHost, nil))
+		}()
 	}
 
 	mux := http.NewServeMux()
@@ -61,15 +69,12 @@ func initRouting(mux *http.ServeMux, n *negroni.Negroni) {
 
 	// handle the rest of URIs
 	mux.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
-		//	mux.HandleFunc("/", func(w BufferedResponseWriter, req *http.Request) {
 		if !Config.Proxy.Disabled {
 			ProxyRequest(w, req)
 		} else {
 			w.Header().Add(`X-Default-Page`, `true`)
 			w.Write([]byte(fmt.Sprintf("Request %s was received at %s\n", req.URL.String(), time.Now().String())))
 		}
-
-		//		fmt.Println(w.Buffer.String())
 	})
 
 	n.UseHandler(mux)
