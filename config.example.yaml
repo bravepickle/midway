@@ -16,7 +16,7 @@ log:
   
   # logging response
   response:
-    disabled: true # disable response logging
+    disabled: false # disable response logging
     # if blank string then will use Stdout
     #output: ./response.log # output results to file
     output: "" # output to stdout
@@ -25,16 +25,21 @@ log:
     # RegEx strings that specify conditions when response should be logged. If contain empty string then allow all. 
     # Filters use AND as glue between conditionals
     conditions:
-      disabled: true # disable conditions check
-      uri: ""
+      disabled: false # disable conditions check
+      request: # request check for response return
+        disabled: false
+        uri: "\\.php(\\?|$)"
+        method: ""
+        header: ""
+        body: ""
       header: ""
       body: ""
     
   # logging request
   request:
     disabled: false # disable request logging
-    output: ./request.log # output results to file
-    #output: "" # output to stdout
+    #output: ./request.log # output results to file
+    output: "" # output to stdout
     truncate: false # truncate file for output on start
             
     conditions:
@@ -45,5 +50,8 @@ log:
       body: ""
   
   # if blank string then will use Stderr
-  error_log: ./error.log
-  #error_log: ""
+  error:
+    disabled: false # disable logging
+    #output: ./error.log # output results to file
+    output: "" # output to stderr
+    truncate: false # truncate file for output on start

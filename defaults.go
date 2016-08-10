@@ -10,9 +10,9 @@ app:
 # reverse proxy server to send requests in gateway mode
 proxy:
   disabled: true  # disable reverse proxy, will return default text otherwise
-  scheme: http    # http/https schema for target proxy host
+  scheme: http	  # http/https schema for target proxy host
   host: localhost # target host
-  port: 3001    # target port
+  port: 3001	  # target port
 
 # Logging settings
 log:
@@ -29,8 +29,13 @@ log:
     # RegEx strings that specify conditions when response should be logged. If contain empty string then allow all. 
     # Filters use AND as glue between conditionals
     conditions:
-      disabled: true # disable conditions check
-      uri: ""
+      disabled: false # disable conditions check
+      request: # request check for response return
+        disabled: true
+        uri: "\\.php(\\?|$)"
+        method: ""
+        header: ""
+        body: ""
       header: ""
       body: ""
     
@@ -49,7 +54,10 @@ log:
       body: ""
   
   # if blank string then will use Stderr
-  error_log: ./error.log
-  #error_log: ""
+  error:
+    disabled: false # disable logging
+    #output: ./error.log # output results to file
+    output: "" # output to stderr
+    truncate: false # truncate file for output on start
 
 `

@@ -46,12 +46,14 @@ func NewLogger() *CurlLogger {
 		}
 	}
 
-	if Config.Log.ErrorLog == `` {
-		l.Error = newFileLog(os.Stderr)
-	} else {
-		file := openOrCreateFile(Config.Log.ErrorLog, false)
-		l.Error = newFileLog(file)
-		log.SetOutput(file) // reset default logger
+	if !Config.Log.Error.Disabled {
+		if Config.Log.Error.Output == `` {
+			l.Error = newFileLog(os.Stderr)
+		} else {
+			file := openOrCreateFile(Config.Log.Error.Output, Config.Log.Error.Truncate)
+			l.Error = newFileLog(file)
+			log.SetOutput(file) // reset default logger
+		}
 	}
 
 	return l
@@ -96,33 +98,37 @@ func allowedToLogRequest(r *http.Request, body string) bool {
 		return false
 	}
 
-	if Config.Log.Request.Conditions.Disabled {
+	return allowedToLogRequestCond(&Config.Log.Request.Conditions, r, body)
+}
+
+func allowedToLogRequestCond(reqCond *RequestLogCondConfigStruct, r *http.Request, body string) bool {
+	if reqCond.Disabled {
 		return true
 	}
 
-	if Config.Log.Request.Conditions.Uri != `` {
-		rxCond := regexp.MustCompile(Config.Log.Request.Conditions.Uri)
+	if reqCond.Uri != `` {
+		rxCond := regexp.MustCompile(reqCond.Uri)
 		if !rxCond.Match([]byte(r.RequestURI)) {
 			return false
 		}
 	}
 
-	if Config.Log.Request.Conditions.Method != `` {
-		rxCond := regexp.MustCompile(Config.Log.Request.Conditions.Method)
+	if reqCond.Method != `` {
+		rxCond := regexp.MustCompile(reqCond.Method)
 		if !rxCond.Match([]byte(r.Method)) {
 			return false
 		}
 	}
 
-	if Config.Log.Request.Conditions.Header != `` {
-		rxCond := regexp.MustCompile(Config.Log.Request.Conditions.Header)
+	if reqCond.Header != `` {
+		rxCond := regexp.MustCompile(reqCond.Header)
 		if !containsHeader(r.Header, rxCond) {
 			return false
 		}
 	}
 
-	if Config.Log.Request.Conditions.Body != `` {
-		rxCond := regexp.MustCompile(Config.Log.Request.Conditions.Body)
+	if reqCond.Body != `` {
+		rxCond := regexp.MustCompile(reqCond.Body)
 		if !rxCond.Match([]byte(body)) {
 			return false
 		}
@@ -131,43 +137,34 @@ func allowedToLogRequest(r *http.Request, body string) bool {
 	return true
 }
 
-func allowedToLogResponse(rw http.ResponseWriter, body string) bool {
+func allowedToLogResponse(rw *BufferedResponseWriter, requestBody string) bool {
 	if Config.Log.Response.Disabled {
 		return false
 	}
 
 	// TODO: implement this
-	//	if Config.Log.Response.Conditions.Disabled {
-	//		return true
-	//	}
+	if Config.Log.Response.Conditions.Disabled {
+		return true
+	}
 
-	//	if Config.Log.Response.Conditions.Uri != `` {
-	//		rxCond := regexp.MustCompile(Config.Log.Response.Conditions.Uri)
-	//		if !rxCond.Match([]byte(r.RequestURI)) {
-	//			return false
-	//		}
-	//	}
+	if !Config.Log.Response.Conditions.Request.Disabled &&
+		!allowedToLogRequestCond(&Config.Log.Response.Conditions.Request, rw.Request, requestBody) {
+		return false
+	}
 
-	//	if Config.Log.Response.Conditions.Method != `` {
-	//		rxCond := regexp.MustCompile(Config.Log.Response.Conditions.Method)
-	//		if !rxCond.Match([]byte(r.Method)) {
-	//			return false
-	//		}
-	//	}
+	if Config.Log.Response.Conditions.Header != `` {
+		rxCond := regexp.MustCompile(Config.Log.Response.Conditions.Header)
+		if !containsHeader(rw.Header(), rxCond) {
+			return false
+		}
+	}
 
-	//	if Config.Log.Response.Conditions.Header != `` {
-	//		rxCond := regexp.MustCompile(Config.Log.Response.Conditions.Header)
-	//		if !containsHeader(r.Header, rxCond) {
-	//			return false
-	//		}
-	//	}
-
-	//	if Config.Log.Response.Conditions.Body != `` {
-	//		rxCond := regexp.MustCompile(Config.Log.Response.Conditions.Body)
-	//		if !rxCond.Match([]byte(body)) {
-	//			return false
-	//		}
-	//	}
+	if Config.Log.Response.Conditions.Body != `` {
+		rxCond := regexp.MustCompile(Config.Log.Response.Conditions.Body)
+		if !rxCond.Match([]byte(rw.Body.String())) {
+			return false
+		}
+	}
 
 	return true
 }
@@ -194,6 +191,7 @@ func containsHeader(headers http.Header, rxCond *regexp.Regexp) bool {
 func (l *CurlLogger) ServeHTTP(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 	start := time.Now()
 	idNum := atomic.AddUint64(&idLogNum, 1)
+	mw := NewBufferedResponseWriter(rw, r) // TODO: it should not be initialized if response output is disabled
 
 	if Debug {
 		body := gencurl.CopyBody(r)
@@ -203,7 +201,8 @@ func (l *CurlLogger) ServeHTTP(rw http.ResponseWriter, r *http.Request, next htt
 			l.Request.Printf("[%d][%s] Started %s %s", idNum, start, r.Method, r.URL.Path)
 		}
 
-		next(rw, r)
+		next(mw, r)
+		//		next(rw, r)
 
 		res := rw.(negroni.ResponseWriter)
 
@@ -213,25 +212,25 @@ func (l *CurlLogger) ServeHTTP(rw http.ResponseWriter, r *http.Request, next htt
 		}
 
 		// TODO: response body can be copied properly without losing send to end user
-		if allowedToLogResponse(rw, ``) {
+		if allowedToLogResponse(mw, body) {
 			// TODO: status code, headers, body goes here
-			l.Response.Printf("[%d] Response\n%s\n\n", idNum, `TODO: status code, headers, body goes here`)
+			l.Response.Printf("[%d] ----\n%s\n\n", idNum, mw.String())
 		}
 
 		// TODO: add response status, headers, body in plain format in log
 
 	} else {
 		body := gencurl.CopyBody(r)
-		next(rw, r)
+		next(mw, r)
 
 		if allowedToLogRequest(r, body) {
 			l.Request.Printf("[%d][%s] %s\n", idNum, start, gencurl.FromRequestWithBody(r, body))
 		}
 
 		// TODO: response body can be copied properly without losing send to end user
-		if allowedToLogResponse(rw, ``) {
+		if allowedToLogResponse(mw, body) {
 			// TODO: status code, headers, body goes here
-			l.Response.Printf("[%d] Response\n%s\n\n", idNum, `TODO: status code, headers, body goes here`)
+			l.Response.Printf("[%d] ----\n%s\n\n", idNum, mw.String())
 		}
 
 		// TODO: add response status, headers, body in plain format in log

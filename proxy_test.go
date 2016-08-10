@@ -19,9 +19,9 @@ func TestServerDefaultCfgSetup(t *testing.T) {
 	Config.Proxy.Disabled = true
 	Config.Log.Request.Output = `./test_request.log`
 	Config.Log.Response.Output = `./test_response.log`
-	Config.Log.ErrorLog = `./test_error.log`
+	Config.Log.Error.Output = `./test_error.log`
 
-	t.Log(`Files to log to:`, Config.Log.Request.Output, Config.Log.Response.Output, Config.Log.ErrorLog)
+	t.Log(`Files to log to:`, Config.Log.Request.Output, Config.Log.Response.Output, Config.Log.Error.Output)
 
 	mux := http.NewServeMux()
 	n := Gateway()

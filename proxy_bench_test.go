@@ -14,7 +14,7 @@ func BenchmarkServerWriteToFiles(t *testing.B) {
 	Config.Proxy.Disabled = true
 	//	Config.Log.Request.Output = `./test_request.log`
 	//	Config.Log.Response.Output = `./test_response.log`
-	Config.Log.ErrorLog = `./test_error.log`
+	//	Config.Log.Error.Output = `./test_error.log`
 
 	Config.Log.Request.Disabled = false
 	Config.Log.Request.Truncate = true
@@ -22,7 +22,10 @@ func BenchmarkServerWriteToFiles(t *testing.B) {
 	Config.Log.Response.Disabled = false
 	Config.Log.Response.Truncate = true
 
-	t.Logf(`Files to log to: "%s", "%s", "%s"`, Config.Log.Request.Output, Config.Log.Response.Output, Config.Log.ErrorLog)
+	Config.Log.Error.Disabled = false
+	Config.Log.Error.Truncate = true
+
+	t.Logf(`Files to log to: "%s", "%s", "%s"`, Config.Log.Request.Output, Config.Log.Response.Output, Config.Log.Error.Output)
 
 	mux := http.NewServeMux()
 	n := Gateway()

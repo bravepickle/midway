@@ -59,4 +59,5 @@ Default URL: http://localhost:3000
 - add to config optional preconditions to start logging requests and responses, using RegEx
 - log time taken for handling requests
 - init RegEx expressions once and compile them with reuse
+- add, set, remove headers for responses and requests
 

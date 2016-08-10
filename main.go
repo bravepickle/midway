@@ -61,12 +61,15 @@ func initRouting(mux *http.ServeMux, n *negroni.Negroni) {
 
 	// handle the rest of URIs
 	mux.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
+		//	mux.HandleFunc("/", func(w BufferedResponseWriter, req *http.Request) {
 		if !Config.Proxy.Disabled {
 			ProxyRequest(w, req)
 		} else {
 			w.Header().Add(`X-Default-Page`, `true`)
 			w.Write([]byte(fmt.Sprintf("Request %s was received at %s\n", req.URL.String(), time.Now().String())))
 		}
+
+		//		fmt.Println(w.Buffer.String())
 	})
 
 	n.UseHandler(mux)

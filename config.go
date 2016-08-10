@@ -58,17 +58,23 @@ type RequestLogCondConfigStruct struct {
 }
 
 type ResponseLogConfigStruct struct {
-	Disabled   bool                       `yaml:"disabled,omitempty"`
-	Output     string                     `yaml:"output,omitempty"`
-	Conditions RequestLogCondConfigStruct `yaml:"conditions,omitempty"`
-	Truncate   bool                       `yaml:"truncate,omitempty"`
+	Disabled   bool                        `yaml:"disabled,omitempty"`
+	Output     string                      `yaml:"output,omitempty"`
+	Conditions ResponseLogCondConfigStruct `yaml:"conditions,omitempty"`
+	Truncate   bool                        `yaml:"truncate,omitempty"`
+}
+
+type ErrorLogConfigStruct struct {
+	Disabled bool   `yaml:"disabled,omitempty"`
+	Output   string `yaml:"output,omitempty"`
+	Truncate bool   `yaml:"truncate,omitempty"`
 }
 
 type ResponseLogCondConfigStruct struct {
-	Disabled bool   `yaml:"disabled,omitempty"`
-	Uri      string `yaml:"uri,omitempty"`
-	Header   string `yaml:"header,omitempty"`
-	Body     string `yaml:"body,omitempty"`
+	Disabled bool                       `yaml:"disabled,omitempty"`
+	Request  RequestLogCondConfigStruct `yaml:"request,omitempty"`
+	Header   string                     `yaml:"header,omitempty"`
+	Body     string                     `yaml:"body,omitempty"`
 }
 
 // LogConfigStruct contains DB connection details
@@ -76,12 +82,12 @@ type LogConfigStruct struct {
 	Disabled bool                    `yaml:"disabled,omitempty"`
 	Request  RequestLogConfigStruct  `yaml:"request,omitempty"`
 	Response ResponseLogConfigStruct `yaml:"response,omitempty"`
-	ErrorLog string                  `yaml:"error_log,omitempty"`
+	Error    ErrorLogConfigStruct    `yaml:"error,omitempty"`
 }
 
 // String generates string
 func (t *LogConfigStruct) String() string {
-	return fmt.Sprintf(`{error: %s, request: %s, response: %s}`, t.ErrorLog, t.Request.Output, t.Response.Output)
+	return fmt.Sprintf(`{error: %s, request: %s, response: %s}`, t.Error.Output, t.Request.Output, t.Response.Output)
 }
 
 // AppConfigStruct contain common application settings
