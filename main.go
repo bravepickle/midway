@@ -47,7 +47,7 @@ func main() {
 		fmt.Println(`Debug enabled`)
 
 		go func() {
-			fmt.Printf("Profiling enabled at: http://%s/debug/pprof/Warning! Under high load should be handled carefully, memory leaks possible\n", ProfileHost)
+			fmt.Printf("Profiling enabled at: http://%s/debug/pprof/\nWarning! Under high load should be handled carefully, memory leaks possible\n", ProfileHost)
 			log.Fatal(http.ListenAndServe(ProfileHost, nil))
 		}()
 	}

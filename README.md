@@ -60,5 +60,5 @@ Default URL: http://localhost:3000
 - log time taken for handling requests
 - init RegEx expressions once and compile them with reuse
 - add, set, remove headers for responses and requests
-- init all RegEx rxCond compiled sources in array and read from them - check on race conditions if affected
+- init all RegEx rxCond compiled sources in array on initConfig and read from them - check on race conditions if affected
 
