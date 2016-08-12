@@ -6,7 +6,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"regexp"
 	"sync/atomic"
 	"time"
 
@@ -106,32 +105,20 @@ func allowedToLogRequestCond(reqCond *RequestLogCondConfigStruct, r *http.Reques
 		return true
 	}
 
-	if reqCond.Uri != `` {
-		rxCond := regexp.MustCompile(reqCond.Uri)
-		if !rxCond.Match([]byte(r.RequestURI)) {
-			return false
-		}
+	if !rxMatch(reqCond.Uri, r.RequestURI) {
+		return false
 	}
 
-	if reqCond.Method != `` {
-		rxCond := regexp.MustCompile(reqCond.Method)
-		if !rxCond.Match([]byte(r.Method)) {
-			return false
-		}
+	if !rxMatch(reqCond.Method, r.Method) {
+		return false
 	}
 
-	if reqCond.Header != `` {
-		rxCond := regexp.MustCompile(reqCond.Header)
-		if !containsHeader(r.Header, rxCond) {
-			return false
-		}
+	if reqCond.Header != `` && !containsHeader(reqCond.Header, r.Header) {
+		return false
 	}
 
-	if reqCond.Body != `` {
-		rxCond := regexp.MustCompile(reqCond.Body)
-		if !rxCond.Match([]byte(body)) {
-			return false
-		}
+	if !rxMatch(reqCond.Body, body) {
+		return false
 	}
 
 	return true
@@ -142,7 +129,6 @@ func allowedToLogResponse(rw *BufferedResponseWriter, requestBody string) bool {
 		return false
 	}
 
-	// TODO: implement this
 	if Config.Log.Response.Conditions.Disabled {
 		return true
 	}
@@ -152,25 +138,20 @@ func allowedToLogResponse(rw *BufferedResponseWriter, requestBody string) bool {
 		return false
 	}
 
-	if Config.Log.Response.Conditions.Header != `` {
-		rxCond := regexp.MustCompile(Config.Log.Response.Conditions.Header)
-		if !containsHeader(rw.Header(), rxCond) {
-			return false
-		}
+	if Config.Log.Response.Conditions.Header != `` &&
+		!containsHeader(Config.Log.Response.Conditions.Header, rw.Header()) {
+		return false
 	}
 
-	if Config.Log.Response.Conditions.Body != `` {
-		rxCond := regexp.MustCompile(Config.Log.Response.Conditions.Body)
-		if !rxCond.Match([]byte(rw.Body.String())) {
-			return false
-		}
+	if !rxMatch(Config.Log.Response.Conditions.Body, rw.Body.String()) {
+		return false
 	}
 
 	return true
 }
 
 // containsHeader check if header exists
-func containsHeader(headers http.Header, rxCond *regexp.Regexp) bool {
+func containsHeader(pattern string, headers http.Header) bool {
 	for vKey, vVals := range headers {
 		prefix := bytes.NewBufferString(vKey)
 		prefix.WriteString(`: `)
@@ -179,7 +160,7 @@ func containsHeader(headers http.Header, rxCond *regexp.Regexp) bool {
 			h := bytes.NewBuffer(prefix.Bytes())
 			h.WriteString(v)
 
-			if rxCond.Match(h.Bytes()) {
+			if rxMatch(pattern, h.String()) {
 				return true
 			}
 		}
@@ -202,7 +183,6 @@ func (l *CurlLogger) ServeHTTP(rw http.ResponseWriter, r *http.Request, next htt
 		}
 
 		next(mw, r)
-		//		next(rw, r)
 
 		res := rw.(negroni.ResponseWriter)
 

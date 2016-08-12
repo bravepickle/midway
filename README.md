@@ -40,6 +40,9 @@ Default URL: http://localhost:3000
 - log requests in CLI CURL format
 - can work as a reverse proxy
 
+## Notes
+- output STDOUT, STDERR streams to screen greatly impacts performance! Avoid under heavy load, use files or redirect streams to files instead
+- use carefully filter conditions with RegEx, they affect performance greatly
 
 ## TODOs
 - logger customizations: output source, naming, disabling etc.

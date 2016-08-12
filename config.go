@@ -5,9 +5,12 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"regexp"
 
 	"gopkg.in/yaml.v2"
 )
+
+var rxList map[string]*regexp.Regexp
 
 // ConfigStruct struct contains main application config
 type ConfigStruct struct {
@@ -125,6 +128,10 @@ func initConfig(cfgPath string, config *ConfigStruct) bool {
 		return false
 	}
 
+	rxList = make(map[string]*regexp.Regexp)
+	prepareRequestCond()
+	prepareResponseCond()
+
 	return true
 }
 
@@ -140,4 +147,63 @@ func saveToFile(str string, cfgPath string) (bool, error) {
 	}
 
 	return true, nil
+}
+
+// ---------------------- RegEx expressions preparation
+
+func prepareRequestCond() {
+	if Config.Log.Request.Disabled {
+		return
+	}
+
+	prepareRegExRequestCond(&Config.Log.Request.Conditions)
+}
+
+// rxListCompile compile pattern that should be used by rxMatch() later on
+func rxListCompile(pattern string) {
+	if pattern != `` {
+		rxList[pattern] = regexp.MustCompile(pattern)
+	}
+}
+
+// rxMatch search in precompiled conditions text pattern match
+func rxMatch(pattern string, value string) bool {
+	if pattern == `` {
+		return true
+	}
+
+	rxCond, ok := rxList[pattern]
+	if !ok {
+		return false // if cannot find pattern, then just skip it
+	}
+
+	if !rxCond.Match([]byte(value)) {
+		return false
+	}
+
+	return true
+}
+
+func prepareRegExRequestCond(reqCond *RequestLogCondConfigStruct) {
+	if reqCond.Disabled {
+		return
+	}
+
+	rxListCompile(reqCond.Uri)
+	rxListCompile(reqCond.Method)
+	rxListCompile(reqCond.Header)
+	rxListCompile(reqCond.Body)
+}
+
+func prepareResponseCond() {
+	if Config.Log.Response.Disabled || Config.Log.Response.Conditions.Disabled {
+		return
+	}
+
+	if !Config.Log.Response.Conditions.Request.Disabled {
+		prepareRegExRequestCond(&Config.Log.Response.Conditions.Request)
+	}
+
+	rxListCompile(Config.Log.Response.Conditions.Header)
+	rxListCompile(Config.Log.Response.Conditions.Body)
 }
