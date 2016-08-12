@@ -35,7 +35,7 @@ func main() {
 		return
 	}
 
-	if !initConfig(cfgPath, &Config) {
+	if flag.Arg(0) != argCfgInit && !initConfig(cfgPath, &Config) {
 		return
 	}
 
