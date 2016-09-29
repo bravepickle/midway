@@ -3,6 +3,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"regexp"
@@ -116,7 +117,13 @@ func initConfig(cfgPath string, config *ConfigStruct) bool {
 		return false
 	}
 
-	cfgFileString, err := ioutil.ReadAll(cfgFile)
+	reader := io.Reader(cfgFile)
+
+	return initConfigFromSource(reader, config)
+}
+
+func initConfigFromSource(r io.Reader, config *ConfigStruct) bool {
+	cfgFileString, err := ioutil.ReadAll(r)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to read config: %s\n", err.Error())
 		return false
