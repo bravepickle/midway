@@ -112,6 +112,105 @@ func testInitConfigFromSource(t *testing.T, srv *httptest.Server) {
 					},
 				},
 			},
+		}, {
+			desc: `custom`,
+			input: `
+app:
+  host: example.com
+  port: 3001
+
+proxy:
+  disabled: false
+  scheme: https
+  host: target.example.com
+  port: 10001
+
+log:
+  disabled: false
+  
+  response:
+    disabled: false
+    output: ./response.log
+    truncate: true
+    
+    conditions:
+      disabled: false
+      request:
+        disabled: false
+        uri: "\\.class.php"
+        method: "GET"
+        header: "X-Client: 123"
+        body: "Hello"
+      header: "Content-Type: text/plain"
+      body: "Result"
+    
+  request:
+    disabled: false
+    output: ./request.log
+    truncate: true
+            
+    conditions:
+      disabled: false
+      uri: "/users/"
+      header: ""
+      method: "POST"
+      body: "MyRequest"
+  
+  error:
+    disabled: false
+    output: ./error.log
+    truncate: true
+
+`,
+			expected: ConfigStruct{
+				App: AppConfigStruct{
+					Host: `example.com`,
+					Port: `3001`,
+				},
+				Proxy: ProxyConfigStruct{
+					Disabled: false,
+					Scheme:   `https`,
+					Host:     `target.example.com`,
+					Port:     `10001`,
+				},
+				Log: LogConfigStruct{
+					Disabled: false,
+					Request: RequestLogConfigStruct{
+						Disabled: false,
+						Output:   `./request.log`,
+						Truncate: true,
+						Conditions: RequestLogCondConfigStruct{
+							Disabled: false,
+							Uri:      `/users/`,
+							Header:   ``,
+							Method:   `POST`,
+							Body:     `MyRequest`,
+						},
+					},
+					Response: ResponseLogConfigStruct{
+						Disabled: false,
+						Output:   `./response.log`,
+						Truncate: true,
+						Conditions: ResponseLogCondConfigStruct{
+							Disabled: false,
+							Header:   `Content-Type: text/plain`,
+							Body:     `Result`,
+							Request: RequestLogCondConfigStruct{
+								Disabled: false,
+								Uri:      "/users/",
+								Header:   `X-Client: 123`,
+								Method:   `GET`,
+								Body:     `Hello`,
+							},
+						},
+					},
+					Error: ErrorLogConfigStruct{
+						Disabled: false,
+						Output:   `./error.log`,
+						Truncate: true,
+					},
+				},
+			},
 		},
 	}
 
